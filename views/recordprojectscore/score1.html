@@ -1,0 +1,133 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+
+    <div class="layui-row" style="margin-top: 20px;">
+        <div class="layui-col-xs10 search_text">
+            <form class="layui-form" action="" onsubmit="javascript:return false;">
+                <div class="demoTable">
+                    <div class="layui-input-inline" style="width: 20%;text-align: center;">
+                        <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off" placeholder="请选择年份">
+                    </div>
+
+                    <div class="layui-input-inline" style="width: 20%;text-align: center;">
+                        <select id="quarter" name="quarter" lay-verify="required" lay-search="" style="width: 100%">
+                            <option value="">请选择季度</option>
+                            <option value="1">第一季度</option>
+                            <option value="2">第二季度</option>
+                            <option value="3">第三季度</option>
+                            <option value="4">第四季度</option>
+                        </select>
+                    </div>
+
+                    <div class="layui-inline" style="width: 20%;text-align: center;">
+                        <select id="tid" name="tid" lay-verify="required" lay-search="">
+                            <option value="">请选择分类</option>
+                            {{range $index,$elem := .types}}
+                            <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+
+
+                    <div class="layui-input-inline" style="width: 20%;text-align: center;">
+                        <select id="project" name="project" lay-verify="required" lay-search="" style="width: 100%">
+                            <option value="">请选择项目</option>
+                            {{range $index,$elem := .projects}}
+                            <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+
+                    <button class="layui-btn" data-type="reload" id="reload">查询</button>
+
+                    <button class="layui-btn" data-type="download" id="download">下载</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+
+
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-xs" lay-event="detail">详情</a>
+    </script>
+</div>
+<script>
+    layui.use(['table', 'form', 'element', 'laydate'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+        var laydate = layui.laydate;
+
+        //自定义格式
+        laydate.render({
+            elem: '#year',
+            type: 'year',
+            format: 'yyyy'
+        });
+
+        var $ = layui.$,
+            active = {
+                reload: function () {
+                    //方法级渲染
+                    table.render({
+                        elem: '#table_list',
+                        url: '/RecordProjectScore/Search1?year=' + $("#year").val() + '&quarter=' +
+                            $(
+                                "#quarter").val() + '&pid=' + $("#project").val() + '&tid=' + $(
+                                "#tid").val(),
+                        cols: [
+                            [{
+                                field: 'id',
+                                title: 'ID',
+                                align: 'center',
+                                sort: true,
+                                width: '20%'
+                            }, {
+                                field: 'name',
+                                align: 'center',
+                                title: '名称',
+                                width: '30%'
+                            }, {
+                                field: 'score',
+                                align: 'center',
+                                title: '分数',
+                                width: '30%'
+                            }, {
+                                fixed: 'right',
+                                align: 'center',
+                                title: '操作',
+                                toolbar: '#bar',
+                                width: '20%'
+                            }]
+                        ],
+                        id: 'listReload',
+                        height: "full-130"
+                    });
+                }
+            };
+
+
+        //监听工具条
+        table.on('tool(table_filter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                // window.location.href = '/RecordProjectScore/Score2?tid=' + data.id + '&pid=' + $(
+                // "#project").val() + '&year=' + $("#year").val() + '&quarter=' + $( // "#quarter").val() + '&ttid=' + $("#tid").val()
+                window.location.href = '/RecordProjectScore/Score2?year=' + $("#year").val() +
+                    '&quarter=' +
+                    $(
+                        "#quarter").val() + '&pid=' + $("#project").val() + '&tid=' + $(
+                        "#tid").val()
+            } else {
+                layer.msg('操作不存在');
+            }
+        });
+
+        $('.demoTable .layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+</script>

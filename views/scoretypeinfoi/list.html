@@ -1,0 +1,174 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+    <div class="layui-row" style="margin-top: 20px;">
+        <div class="layui-col-xs6">
+            <div class="layui-btn-group">
+                <button class="layui-btn" id="add_api">新增</button>
+            </div>
+            <!-- <a class="layui-btn" data-type="tabAdd" href="/api/add">新增</a>  -->
+            <!-- <a href="javascript:;" id="add_api" class="layui-btn"> 新增接口 </a>  
+            <a href="javascript:;" id="add_audit" class="layui-btn layui-btn-primary"> 提交审核 </a> -->
+        </div>
+    </div>
+
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">下级</a>
+        <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="audit">权限</a>
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <!-- <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a> -->
+    </script>
+</div>
+<script>
+    layui.use(['table', 'form', 'element'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+
+        //方法级渲染
+        table.render({
+            elem: '#table_list',
+            url: '/ScoreTypeInfoI/Table',
+            cols: [
+                [{
+                    field: 'id',
+                    title: 'ID',
+                    align: 'center',
+                    sort: true,
+                    width: '20%'
+                }, {
+                    field: 'name',
+                    align: 'center',
+                    title: '接口名称',
+                    width: '40%'
+                }, {
+                    fixed: 'right',
+                    align: 'center',
+                    title: '操作',
+                    toolbar: '#bar',
+                    width: '40%'
+                }]
+            ],
+            id: 'listReload',
+            page: true,
+            height: "full-130"
+        });
+
+        var $ = layui.$,
+            active = {
+                reload: function () {
+                    table.reload('listReload', {
+                        where: {
+                            apiName: $('#apiName').val(),
+                            status: $("#status").val()
+                        }
+                    });
+                }
+            };
+
+        $("#add_api").on("click", function () {
+            window.location.href = "/ScoreTypeInfoI/Add"
+        })
+
+        //提交审核
+        $("#add_audit").on("click", function () {
+            var checkStatus = table.checkStatus('listReload');
+            var ids = "";
+            $.each(checkStatus["data"], function (k, v) {
+                if (v.status == 1) {
+                    ids += v.id + ",";
+                }
+            })
+
+            ids = (ids.substring(ids.length - 1) == ',') ? ids.substring(0, ids.length - 1) : ids;
+
+            if (!ids) {
+                layer.msg("请选择状态为正在开发的数据")
+                return false;
+            }
+
+            layer.confirm("确定要选中的接口提交审核吗？", function () {
+                var add_audit_data = {
+                    "ids": ids,
+                    "status": 1
+                }
+                $.post('{{urlfor "ApiController.AjaxChangeStatus"}}', add_audit_data, function (
+                    out) {
+                    if (out.status == 0) {
+                        layer.msg("操作成功", {
+                            icon: 1
+                        }, function () {
+                            $("#reload").click();
+                        })
+                    } else {
+                        layer.msg(out.message)
+                    }
+                }, "json");
+                return false;
+            });
+        })
+
+        //批量审核
+        $("#audit").on("click", function () {
+            var checkStatus = table.checkStatus('listReload');
+            var ids = "";
+            $.each(checkStatus["data"], function (k, v) {
+                if (v.status == 2) {
+                    ids += v.id + ",";
+                }
+            })
+
+            ids = (ids.substring(ids.length - 1) == ',') ? ids.substring(0, ids.length - 1) : ids;
+
+            if (!ids) {
+                layer.msg("请选择状态为正在审核的数据")
+                return false;
+            }
+
+            layer.confirm("确定要选中的接口审核通过吗？", function () {
+                var add_audit_data = {
+                    "ids": ids,
+                    "status": 3
+                }
+                $.post('{{urlfor "ApiController.AjaxChangeStatus"}}', add_audit_data, function (
+                    out) {
+                    if (out.status == 0) {
+                        layer.msg("操作成功", {
+                            icon: 1
+                        }, function () {
+                            $("#reload").click();
+                        })
+                    } else {
+                        layer.msg(out.message)
+                    }
+                }, "json");
+                return false;
+            });
+        })
+
+        //监听工具条
+        table.on('tool(table_filter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'edit') {
+                layer.open({
+                    type: 2,
+                    shade: 0.3,
+                    id: 1,
+                    title: "编辑模版",
+                    content: '/ScoreTypeInfoI/Edit?id=' + data.id,
+                    area: ['500px', '250px'],
+                });
+            } else if (obj.event === 'detail') {
+                window.location.href = "/ScoreTypeInfoII/List?tid=" + data.id
+            } else if (obj.event === 'audit') {
+                window.location.href = "/STUserMappingI/List?id=" + data.id
+            }
+        });
+
+        $('.demoTable .layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+</script>

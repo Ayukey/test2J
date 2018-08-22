@@ -1,0 +1,91 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    </script>
+
+    <input type="hidden" id="tid" name="tid" value="{{.Source.tid}}">
+    <input type="hidden" id="ttid" name="ttid" value="{{.Source.ttid}}">
+    <input type="hidden" id="pid" name="pid" value="{{.Source.pid}}">
+    <input type="hidden" id="year" name="year" value="{{.Source.year}}">
+    <input type="hidden" id="quarter" name="quarter" value="{{.Source.quarter}}">
+</div>
+<script>
+    layui.use(['table', 'form', 'element', 'jquery'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+        var $ = layui.jquery;
+
+        //方法级渲染
+        table.render({
+            elem: '#table_list',
+            url: '/ScoreRecordInfoIII/Search?year=' + $("#year").val() + '&quarter=' + $(
+                    "#quarter").val() + '&pid=' + $("#pid").val() + '&tid=' + $("#tid").val() +
+                '&ttid=' + $("#ttid").val(),
+            cols: [
+                [{
+                    field: 'id',
+                    title: 'ID',
+                    align: 'center',
+                    sort: true,
+                    width: '10%'
+                }, {
+                    field: 'rid',
+                    align: 'center',
+                    minWidth: '0%',
+                    width: '0%',
+                    type: 'space',
+                    style: 'display: none'
+                }, {
+                    field: 'name',
+                    align: 'center',
+                    title: '名称',
+                    width: '40%'
+                }, {
+                    field: 'max_score',
+                    align: 'center',
+                    title: '总分',
+                    width: '15%'
+                }, {
+                    field: 'score',
+                    align: 'center',
+                    title: '得分',
+                    width: '15%'
+                }, {
+                    fixed: 'right',
+                    align: 'center',
+                    title: '操作',
+                    toolbar: '#bar',
+                    width: '20%'
+                }]
+            ],
+            id: 'listReload',
+            height: "full-130"
+        });
+
+
+        //监听工具条
+        table.on('tool(table_filter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'edit') {
+                layer.open({
+                    type: 2,
+                    shade: 0.3,
+                    id: 1,
+                    title: "编辑项目评分记录",
+                    content: '/ScoreRecordInfoIII/Edit?id=' + data.id + '&rid=' + data.rid +
+                        '&year=' + $("#year").val() + '&quarter=' + $(
+                            "#quarter").val() + '&pid=' + $("#pid").val() + '&tid=' + $("#tid")
+                        .val() + '&ttid=' + $("#ttid").val(),
+                    area: ['600px', '300px'],
+                });
+            } else {
+                layer.msg('操作不存在');
+            }
+        });
+    });
+</script>

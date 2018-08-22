@@ -1,0 +1,95 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+
+    <div class="layui-row" style="margin-top: 20px;">
+        <div class="layui-col-xs10 search_text">
+            <form class="layui-form" action="" onsubmit="javascript:return false;">
+                <div class="demoTable">
+                    <div class="layui-input-inline" style="width: 20%; text-align: center;">
+                        <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off" placeholder="请选择年份">
+                    </div>
+
+                    <div class="layui-input-inline" style="width: 20%;text-align: center;">
+                        <select id="quarter" name="quarter" lay-verify="required" lay-search="" style="width: 100%">
+                            <option value="">请选择季度</option>
+                            <option value="1">第一季度</option>
+                            <option value="2">第二季度</option>
+                            <option value="3">第三季度</option>
+                            <option value="4">第四季度</option>
+                        </select>
+                    </div>
+
+                    <div class="layui-inline" style="width: 20%;text-align: center;">
+                        <select name="tid" id="tid" lay-verify="required" lay-search="">
+                            <option value="">请选择分类</option>
+                            {{range $index,$elem := .types}}
+                            <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+
+                    <button class="layui-btn" data-type="reload" id="reload">查询</button>
+
+                    <button class="layui-btn" data-type="download" id="download">下载</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-xs" lay-event="download">下载明细</a>
+    </script>
+
+</div>
+<script>
+    layui.use(['table', 'form', 'element', 'laydate', 'jquery'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+        var laydate = layui.laydate;
+
+        //自定义格式
+        laydate.render({
+            elem: '#year',
+            type: 'year',
+            format: 'yyyy'
+        });
+
+        var $ = layui.$,
+            active = {
+                reload: function () {
+                    var form_data = new Object;
+                    form_data.year = $("#year").val();
+                    form_data.tid = $("#tid").val();
+                    form_data.quarter = $("#quarter").val();
+
+                    $.post('{{urlfor "ProjectScoreRankController.Search"}}', form_data, function (out) {
+                        console.log(out)
+                        if (out.status == 0) {
+                            //方法级渲染
+                            table.render({
+                                elem: '#table_list',
+                                url: '/ProjectScoreRank/Table?year=' + $("#year").val() +
+                                    '&quarter=' + $("#quarter").val() + '&tid=' + $("#tid").val(),
+                                cols: [
+                                    out.col
+                                ],
+                                id: 'listReload',
+                                page: true,
+                                height: "full-130"
+                            });
+                        } else {
+                            layer.msg(out.message)
+                        }
+                    }, "json");
+                }
+            };
+
+        $('.demoTable .layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+</script>

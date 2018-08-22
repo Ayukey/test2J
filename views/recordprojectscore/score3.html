@@ -1,0 +1,54 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+
+    <input type="hidden" id="tid" name="tid" value="{{.Source.tid}}">
+    <input type="hidden" id="ttid" name="ttid" value="{{.Source.ttid}}">
+    <input type="hidden" id="pid" name="pid" value="{{.Source.pid}}">
+    <input type="hidden" id="year" name="year" value="{{.Source.year}}">
+    <input type="hidden" id="quarter" name="quarter" value="{{.Source.quarter}}">
+</div>
+<script>
+    layui.use(['table', 'form', 'element', 'jquery'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+        var $ = layui.jquery;
+
+        //方法级渲染
+        table.render({
+            elem: '#table_list',
+            url: '/RecordProjectScore/Search3?year=' + $("#year").val() + '&quarter=' + $(
+                    "#quarter").val() + '&pid=' + $("#pid").val() + '&tid=' + $("#tid").val() +
+                '&ttid=' + $("#ttid").val(),
+            cols: [
+                [{
+                    field: 'id',
+                    title: 'ID',
+                    align: 'center',
+                    sort: true,
+                    width: '10%'
+                }, {
+                    field: 'name',
+                    align: 'center',
+                    title: '名称',
+                    width: '40%'
+                }, {
+                    field: 'max_score',
+                    align: 'center',
+                    title: '总分',
+                    width: '25%'
+                }, {
+                    field: 'score',
+                    align: 'center',
+                    title: '得分',
+                    width: '25%'
+                }]
+            ],
+            id: 'listReload',
+            height: "full-130"
+        });
+        
+    });
+</script>

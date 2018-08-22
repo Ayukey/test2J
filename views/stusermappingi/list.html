@@ -1,0 +1,54 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+    <form class="layui-form layui-form-pane" action="">
+        <div class="layui-form-item" pane="">
+            <label class="layui-form-label">用户</label>
+            <div class="layui-input-block">
+                {{range $index,$elem := .users}} {{if eq $elem.on 1}}
+                <input type="checkbox" name="{{$elem.id}}" lay-skin="primary" title="{{$elem.name}} ({{$elem.account}})" checked>
+                {{else}}
+                <input type="checkbox" name="{{$elem.id}}" lay-skin="primary" title="{{$elem.name}} ({{$elem.account}})">
+                {{end}} {{end}}
+            </div>
+        </div>
+
+        <input type="hidden" id="tid" name="tid" value="{{.tid}}">
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit="" lay-filter="sub">保存</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    layui.use(['table', 'form', 'element', 'jquery'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+        var $ = layui.jquery;
+
+        form.on('submit(sub)', function (data) {
+            var form_data = data.field;
+            console.log(form_data)
+            $.post('{{urlfor "STUserMappingIController.AjaxSave"}}', form_data, function (out) {
+                console.log(out)
+                if (out.status == 0) {
+                    layer.msg("操作成功", {
+                        icon: 1,
+                        time: 500
+                    }, function () {
+                        window.location.href = "/STUserMappingI/List?id=" + form_data.tid
+                    })
+                } else {
+                    layer.msg(out.message)
+                }
+            }, "json");
+            return false;
+        });
+
+        //但是，如果你的HTML是动态生成的，自动渲染就会失效
+        //因此你需要在相应的地方，执行下述方法来手动渲染，跟这类似的还有 element.init();
+        form.render();
+    });
+</script>

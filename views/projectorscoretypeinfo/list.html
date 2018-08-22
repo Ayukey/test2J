@@ -1,0 +1,137 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+    <!-- <div class="layui-row" style="margin-top: 20px;">
+        <div class="layui-col-xs6">
+            <a class="layui-btn" data-type="tabAdd" id="add_source" href="javascript:;">新增</a>
+        </div>
+        <div class="layui-col-xs6 search_text">
+            <form class="layui-form" action="" onsubmit="javascript:return false;">
+                <div class="demoTable">
+                    <div class="layui-inline" style="width: 40%">
+                        <input class="layui-input" name="sourceName" id="sourceName" autocomplete="off" placeholder="资源名称">
+                    </div>
+                    <button class="layui-btn" data-type="reload">查询</button>
+                </div>
+            </form>
+
+        </div>
+    </div> -->
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <!-- <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a> -->
+    </script>
+</div>
+<script>
+    layui.use(['table', 'form', 'element'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+
+        //方法级渲染
+        table.render({
+            elem: '#table_list',
+            url: '/ProjectorScoreTypeInfo/Table',
+            cols: [
+                [
+                    // {checkbox: true, fixed: true},
+                    {
+                        field: 'id',
+                        title: 'ID',
+                        align: 'center',
+                        sort: true,
+                        width: '20%'
+                    }, {
+                        field: 'name',
+                        align: 'center',
+                        title: '名称',
+                        width: '30%'
+                    }, {
+                        field: 'score_limit',
+                        align: 'center',
+                        title: '分值',
+                        width: '30%'
+                    }, {
+                        fixed: 'right',
+                        align: 'center',
+                        toolbar: '#bar',
+                        title: '操作',
+                        width: '20%'
+                    }
+                ]
+            ],
+            id: 'listReload',
+            page: true,
+            height: "full-130"
+        });
+
+        var $ = layui.$,
+            active = {
+                reload: function () {
+                    table.reload('listReload', {
+                        where: {
+                            sourceName: $('#sourceName').val(),
+                        }
+                    });
+                }
+            };
+
+
+        $("#add_source").on("click", function () {
+            layer.open({
+                type: 2,
+                shade: 0.3,
+                id: 1,
+                title: "新增资源",
+                content: '/apisource/add',
+                area: ['500px', '300px'],
+                cancel: function () {
+                    window.location.reload();
+                    layer.close(index);
+                }
+            });
+        })
+
+        //监听工具条
+        table.on('tool(table_filter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                //layer.msg('ID：'+ data.id + ' 的查看操作');
+            } else if (obj.event === 'del') {
+                layer.confirm('真的删除【' + data.source_name + '】资源么', function (index) {
+                    var jsData = {
+                        'id': data.id
+                    }
+                    $.post('{{urlfor "ApiSourceController.AjaxDel"}}', jsData, function (out) {
+                        if (out.status == 0) {
+                            layer.alert('删除成功了', {
+                                icon: 1
+                            }, function (index) {
+                                layer.close(index);
+                                window.location.reload();
+                            });
+                        } else {
+                            layer.msg(out.message)
+                        }
+                    }, "json");
+                    obj.del();
+                    layer.close(index);
+                });
+            } else if (obj.event === 'edit') {
+                layer.open({
+                    type: 2,
+                    shade: 0.3,
+                    id: 1,
+                    title: "编辑模版",
+                    content: '/ProjectorScoreTypeInfo/Edit?id=' + data.id,
+                    area: ['500px', '300px'],
+                });
+            }
+        });
+
+        $('.demoTable .layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+</script>

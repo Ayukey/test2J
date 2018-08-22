@@ -1,0 +1,103 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+    <div class="layui-row" style="margin-top: 20px;">
+        <div class="layui-col-xs6">
+            <div class="layui-btn-group">
+                <button class="layui-btn" id="add_api">新增</button>
+            </div>
+            <input type="hidden" id="tid" name="tid" value="{{.Source.tid}}">
+        </div>
+    </div>
+
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">下级</a>
+        <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="audit">权限</a>
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <!-- <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a> -->
+    </script>
+</div>
+<script>
+    layui.use(['table', 'form', 'element', 'jquery'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+        var $ = layui.jquery;
+        //方法级渲染
+        table.render({
+            elem: '#table_list',
+            url: '/ScoreTypeInfoII/Table?tid=' + $('#tid').val(),
+            cols: [
+                [{
+                    field: 'id',
+                    title: 'ID',
+                    align: 'center',
+                    sort: true,
+                    width: '20%'
+                }, {
+                    field: 'name',
+                    align: 'center',
+                    title: '名称',
+                    width: '30%'
+                }, {
+                    field: 'percentage',
+                    align: 'center',
+                    title: '权重',
+                    width: '20%'
+                }, {
+                    fixed: 'right',
+                    align: 'center',
+                    title: '操作',
+                    toolbar: '#bar',
+                    width: '30%'
+                }]
+            ],
+            id: 'listReload',
+            page: true,
+            height: "full-130"
+        });
+
+        var $ = layui.$,
+            active = {
+                reload: function () {
+                    table.reload('listReload', {
+                        where: {
+                            apiName: $('#apiName').val(),
+                            status: $("#status").val()
+                        }
+                    });
+                }
+            };
+
+        $("#add_api").on("click", function () {
+            window.location.href = "/ScoreTypeInfoII/Add?tid=" + $('#tid').val()
+        })
+
+        //监听工具条
+        table.on('tool(table_filter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'edit') {
+                layer.open({
+                    type: 2,
+                    shade: 0.3,
+                    id: 1,
+                    title: "编辑模版",
+                    content: '/ScoreTypeInfoII/Edit?id=' + data.id,
+                    area: ['500px', '300px'],
+                });
+            } else if (obj.event === 'detail') {
+                window.location.href = "/ScoreTypeInfoIII/List?tid=" + data.id
+            } else if (obj.event === 'audit') {
+                window.location.href = "/STUserMappingII/List?id=" + data.id
+            } else {
+                layer.msg('操作不存在');
+            }
+        });
+
+        $('.demoTable .layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+</script>

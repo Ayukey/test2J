@@ -1,0 +1,115 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 40px;margin-top: 20px;">
+        <form class="layui-form" action="" method="post">
+            <input type="hidden" id="id" name="id" value="{{.Source.id}}">
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">工号</label>
+                <div class="layui-form-mid layui-word-aux">{{.Source.account}}</div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">姓名</label>
+                <div class="layui-form-mid layui-word-aux">{{.Source.userName}}</div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属项目</label>
+                <div class="layui-form-mid layui-word-aux">{{.Source.projectName}}</div>
+            </div>
+    
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">开始时间</label>
+                    <div class="layui-input-inline">
+                        <input type="text" class="layui-input" lay-verify="required" id="test1" autocomplete="off" placeholder="请选择开始时间">
+                    </div>
+                </div>
+            </div>
+    
+    
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">结束时间</label>
+                    <div class="layui-input-inline">
+                        <input type="text" class="layui-input" lay-verify="required" id="test2" autocomplete="off" placeholder="请选择结束时间">
+                    </div>
+                </div>
+            </div>
+    
+    
+    
+            <input type="hidden" id="stime" name="stime" value="{{.Source.start_time}}">
+            <input type="hidden" id="etime" name="etime" value="{{.Source.end_time}}">
+
+            <input type="hidden" id="id" name="id" value="{{.Source.id}}">
+    
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit="" lay-filter="sub">保存</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        layui.use(['form', 'element', 'layer', 'jquery', 'laydate'], function () {
+            var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+            var $ = layui.jquery;
+            var laydate = layui.laydate;
+    
+            var start = new Date($('#stime').val());
+            var end = new Date($('#etime').val());
+    
+            //自定义格式
+            laydate.render({
+                elem: '#test1',
+                value: new Date($('#stime').val()),
+                isInitValue: true,
+                format: 'yyyy-MM-dd',
+                done: function (value, date) {
+                    start = new Date(value)
+                }
+            });
+    
+            //自定义格式
+            laydate.render({
+                elem: '#test2',
+                value: new Date($('#etime').val()),
+                isInitValue: true,
+                format: 'yyyy-MM-dd',
+                done: function (value, date) {
+                    end = new Date(value)
+                }
+            });
+    
+            form.on('submit(sub)', function (data) {
+                var form_data = data.field;
+                form_data.start_time = start.valueOf()
+                form_data.end_time = end.valueOf()
+    
+                if (form_data.start_time > form_data.end_time) {
+                    layer.msg("结束时间必须大于开始时间")
+                } else {
+                    console.log(form_data)
+                    $.post('{{urlfor "ProjectorInfoController.AjaxSave"}}', form_data, function (out) {
+                        console.log(out)
+                        if (out.status == 0) {
+                            layer.msg("操作成功", {
+                                icon: 1,
+                                time: 500
+                            }, function () {
+                                window.location.href = "/ProjectorInfo/List"
+                            })
+                        } else {
+                            layer.msg(out.message)
+                        }
+                    }, "json");
+                }
+                return false;
+            });
+    
+            //但是，如果你的HTML是动态生成的，自动渲染就会失效
+            //因此你需要在相应的地方，执行下述方法来手动渲染，跟这类似的还有 element.init();
+            form.render();
+        });
+    </script>

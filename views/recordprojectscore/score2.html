@@ -1,0 +1,82 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-xs" lay-event="detail">详情</a>
+        <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="download">下载</a>
+    </script>
+
+    <input type="hidden" id="tid" name="tid" value="{{.Source.tid}}">
+    <input type="hidden" id="pid" name="pid" value="{{.Source.pid}}">
+    <input type="hidden" id="year" name="year" value="{{.Source.year}}">
+    <input type="hidden" id="quarter" name="quarter" value="{{.Source.quarter}}">
+</div>
+<script>
+    layui.use(['table', 'form', 'element', 'laydate', 'jquery'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+        var laydate = layui.laydate;
+        var $ = layui.jquery;
+
+        //自定义格式
+        laydate.render({
+            elem: '#year',
+            type: 'year',
+            format: 'yyyy'
+        });
+
+        //方法级渲染
+        table.render({
+            elem: '#table_list',
+            url: '/RecordProjectScore/Search2?year=' + $("#year").val() + '&quarter=' +
+                $(
+                    "#quarter").val() + '&pid=' + $("#pid").val() + '&tid=' + $(
+                    "#tid").val(),
+            cols: [
+                [{
+                    field: 'id',
+                    title: 'ID',
+                    align: 'center',
+                    sort: true,
+                    width: '20%'
+                }, {
+                    field: 'name',
+                    align: 'center',
+                    title: '名称',
+                    width: '30%'
+                }, {
+                    field: 'score',
+                    align: 'center',
+                    title: '分数',
+                    width: '30%'
+                }, {
+                    fixed: 'right',
+                    align: 'center',
+                    title: '操作',
+                    toolbar: '#bar',
+                    width: '20%'
+                }]
+            ],
+            id: 'listReload',
+            height: "full-130"
+        });
+
+
+        //监听工具条
+        table.on('tool(table_filter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                window.location.href = '/RecordProjectScore/Score3?tid=' + data.id + '&pid=' + $(
+                    "#pid").val() + '&year=' + $("#year").val() + '&quarter=' + $(
+                    "#quarter").val() + '&ttid=' + $("#tid").val()
+            } else if (obj.event === 'download') {
+                window.location.href = '/RecordProjectScore/Download?tid=' + data.id + '&pid=' + $(
+                    "#pid").val() + '&year=' + $("#year").val() + '&quarter=' + $(
+                    "#quarter").val() + '&ttid=' + $("#tid").val() + '&tscore=' + data.score + '&tname=' + data.name
+            }
+        });
+    });
+</script>

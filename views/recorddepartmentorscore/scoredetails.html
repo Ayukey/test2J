@@ -1,0 +1,63 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-xs" lay-event="detail">详情</a>
+        <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="download">下载</a>
+    </script>
+
+    <input type="hidden" id="uid" name="uid" value="{{.Source.uid}}">
+    <input type="hidden" id="year" name="year" value="{{.Source.year}}">
+    <input type="hidden" id="quarter" name="quarter" value="{{.Source.quarter}}">
+</div>
+<script>
+    layui.use(['table', 'form', 'element', 'laydate', 'jquery'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+        var laydate = layui.laydate;
+        var $ = layui.jquery;
+
+        //自定义格式
+        laydate.render({
+            elem: '#year',
+            type: 'year',
+            format: 'yyyy'
+        });
+
+        //方法级渲染
+        table.render({
+            elem: '#table_list',
+            url: '/RecordDepartmentorScore/SearchDetails?year=' + $("#year").val() + '&quarter=' +
+                $("#quarter").val() + '&uid=' + $("#uid").val(),
+            cols: [
+                [{
+                    field: 'ID',
+                    title: 'ID',
+                    align: 'center',
+                    sort: true,
+                    width: '20%'
+                }, {
+                    field: 'Name',
+                    align: 'center',
+                    title: '名称',
+                    width: '40%'
+                }, {
+                    field: 'ScoreLimit',
+                    align: 'center',
+                    title: '分数',
+                    width: '20%'
+                }, {
+                    field: 'Score',
+                    align: 'center',
+                    title: '分数',
+                    width: '20%'
+                }]
+            ],
+            id: 'listReload',
+            height: "full-130"
+        });
+    });
+</script>
