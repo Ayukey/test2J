@@ -82,31 +82,48 @@ func SearchAllProjectsInUse(year, quarter int) []*ProjectInfo {
 	query := orm.NewOrm().QueryTable(TableName("project_info"))
 	query.OrderBy("id").All(&list)
 
+	now := time.Now()
+	currentYear := year
+	currentLocation := now.Location()
+	currentMonth := time.Month(3)
+	switch quarter {
+	case 1:
+		currentMonth = time.Month(3)
+	case 2:
+		currentMonth = time.Month(6)
+	case 3:
+		currentMonth = time.Month(9)
+	case 4:
+		currentMonth = time.Month(12)
+	}
+
+	currentQuarterFirstMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
+	currentQuarterLastMonth := currentQuarterFirstMonth.AddDate(0, 1, -1)
+	currentQuarterLastMonthTS := currentQuarterLastMonth.Unix()
+
+	fmt.Printf("当前季度时间戳: %d\n", currentQuarterLastMonthTS)
+
 	for _, p := range list {
-		tmBegin := time.Unix(int64(p.BeginDate/1000), 0)
-		tmEnd := time.Unix(int64(p.EndDate/1000), 0)
+		timeEnd := time.Unix(int64(p.EndDate/1000), 0)
+		timeEndMonth := time.Month(3)
+		if 1 <= timeEnd.Month() && timeEnd.Month() <= 3 {
+			timeEndMonth = time.Month(3)
+		} else if 4 <= timeEnd.Month() && timeEnd.Month() <= 6 {
+			timeEndMonth = time.Month(6)
+		} else if 7 <= timeEnd.Month() && timeEnd.Month() <= 9 {
+			timeEndMonth = time.Month(9)
+		} else if 10 <= timeEnd.Month() && timeEnd.Month() <= 12 {
+			timeEndMonth = time.Month(12)
+		}
 
-		fmt.Printf("项目名称 %s\n开始时间 年：%d月：%d\n结束时间 年：%d月：%d\n", p.Name, tmBegin.Year(), tmBegin.Month(), tmEnd.Year(), tmEnd.Month())
+		timeQuarterFirstMonth := time.Date(timeEnd.Year(), timeEndMonth, 1, 0, 0, 0, 0, currentLocation)
+		timeQuarterLastMonth := timeQuarterFirstMonth.AddDate(0, 1, -1)
+		timeQuarterLastMonthTS := timeQuarterLastMonth.Unix()
 
-		if year >= tmBegin.Year() && year <= tmEnd.Year() {
-			switch quarter {
-			case 1:
-				if (tmBegin.Month() >= 1 && tmBegin.Month() <= 3) || (tmBegin.Month() >= 1 && tmBegin.Month() <= 3) {
-					inProjectList = append(inProjectList, p)
-				}
-			case 2:
-				if (tmBegin.Month() >= 4 && tmBegin.Month() <= 6) || (tmBegin.Month() >= 4 && tmBegin.Month() <= 6) {
-					inProjectList = append(inProjectList, p)
-				}
-			case 3:
-				if (tmBegin.Month() >= 7 && tmBegin.Month() <= 9) || (tmBegin.Month() >= 7 && tmBegin.Month() <= 9) {
-					inProjectList = append(inProjectList, p)
-				}
-			case 4:
-				if (tmBegin.Month() >= 10 && tmBegin.Month() <= 12) || (tmBegin.Month() >= 10 && tmBegin.Month() <= 12) {
-					inProjectList = append(inProjectList, p)
-				}
-			}
+		fmt.Printf("项目名称: %s\n 结束时间所在季度最后一天: %d\n", p.Name, timeQuarterLastMonthTS)
+
+		if currentQuarterLastMonthTS <= timeQuarterLastMonthTS {
+			inProjectList = append(inProjectList, p)
 		}
 	}
 	return inProjectList
