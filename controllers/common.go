@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"jg2j_server/libs"
 	"jg2j_server/models"
-	"strconv"
 	"strings"
 	"time"
 
@@ -40,7 +39,6 @@ func (c *BaseController) Prepare() {
 	c.Data["curAction"] = c.actionName
 
 	c.auth()
-	// Auth验证
 
 	c.Data["loginUserId"] = c.userID
 	c.Data["loginUserName"] = c.userName
@@ -48,37 +46,29 @@ func (c *BaseController) Prepare() {
 
 //Auth验证
 func (c *BaseController) auth() {
-	fmt.Println("当前用户Cookie: %s", c.Ctx.GetCookie("auth"))
-
-	arr := strings.Split(c.Ctx.GetCookie("auth"), "|")
 	c.userID = 0
-	if len(arr) == 2 {
-		idStr, password := arr[0], arr[1]
-		uid, _ := strconv.Atoi(idStr)
-		if uid > 0 {
-			user, err := models.AdminGetByID(uid)
-			if err == nil && password == libs.Md5([]byte(c.getClientIP()+"|"+user.Password+user.Salt)) {
-				c.userID = user.ID
-				c.loginName = user.LoginName
-				c.userName = user.RealName
-				c.user = user
-				//管理员验证
-				c.AdminAuth()
-			}
+	session := c.StartSession()
+	defer session.SessionRelease(c.Ctx.ResponseWriter)
 
-			// isHasAuth := strings.Contains(c.allowURL, c.controllerName+"/"+c.actionName)
-			// noAuth := "ajaxsave/ajaxdel/table/loginin/loginout/getnodes/start/show/ajaxapisave/index/group/public/env/code/apidetail"
-			// isNoAuth := strings.Contains(noAuth, c.actionName)
-			// if isHasAuth == false && isNoAuth == false {
-			// 	c.Ctx.WriteString("没有权限")
-			// 	c.ajaxMsg("没有权限", MSG_ERR)
-			// 	return
-			// }
+	uid := session.Get("id")
+	auth := session.Get("auth")
+
+	fmt.Println("当前用户 id:", uid, " auth:", auth)
+
+	if uid != nil && auth != nil {
+		user, err := models.AdminGetByID(uid.(int))
+		if err == nil && auth == libs.Md5([]byte(user.Password+user.Salt)) {
+			c.userID = user.ID
+			c.loginName = user.LoginName
+			c.userName = user.RealName
+			c.user = user
+			//管理员验证
+			c.AdminAuth()
 		}
 	}
 
-	if c.userID == 0 && (c.controllerName != "login" && c.actionName != "loginin") {
-		c.redirect(beego.URLFor("LoginController.LoginIn"))
+	if c.userID == 0 && (c.controllerName != "login" && c.actionName != "login") {
+		c.redirect(beego.URLFor("AuthController.Login"))
 	}
 }
 

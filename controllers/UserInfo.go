@@ -223,3 +223,22 @@ func (c *UserInfoController) AjaxSavePassword() {
 	}
 	c.ajaxMsg("", MSG_OK)
 }
+
+// 删除用户
+func (c *UserInfoController) DeleteUser() {
+	id, err := c.GetInt("id")
+	if err != nil {
+		c.ajaxMsg(err.Error(), MSG_ERR)
+	}
+
+	user, err := models.SearchUserInfoByID(id)
+	if err != nil {
+		c.ajaxMsg(err.Error(), MSG_ERR)
+	}
+	user.Status = 0
+
+	if err = user.Update(); err != nil {
+		c.ajaxMsg(err.Error(), MSG_ERR)
+	}
+	c.ajaxMsg("", MSG_OK)
+}

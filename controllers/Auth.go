@@ -1,25 +1,27 @@
 package controllers
 
 import (
-	"fmt"
 	"jg2j_server/libs"
 	"jg2j_server/models"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/astaxie/beego"
 )
 
-type LoginController struct {
+type AuthController struct {
 	BaseController
 }
 
-//登录 TODO:XSRF过滤
-func (c *LoginController) LoginIn() {
+// 登录
+func (c *AuthController) Login() {
+	session := c.StartSession()
+	defer session.SessionRelease(c.Ctx.ResponseWriter)
+
 	if c.userID > 0 {
 		c.redirect(beego.URLFor("HomeController.Index"))
 	}
+
 	beego.ReadFromRequest(&c.Controller)
 	if c.isPost() {
 		username := strings.TrimSpace(c.GetString("username"))
@@ -36,17 +38,28 @@ func (c *LoginController) LoginIn() {
 				user.LastIP = c.getClientIP()
 				user.LastLogin = time.Now().Unix()
 				user.Update()
-				fmt.Println("当前用户:")
-				fmt.Println(user)
-				authkey := libs.Md5([]byte(c.getClientIP() + "|" + user.Password + user.Salt))
-				// 保存cookie
-				c.Ctx.SetCookie("auth", strconv.Itoa(user.ID)+"|"+authkey, 7*86400)
+				auth := libs.Md5([]byte(user.Password + user.Salt))
+
+				// 保存session
+				session.Set("id", user.ID)
+				session.Set("auth", auth)
+
 				c.redirect(beego.URLFor("HomeController.Index"))
 			}
 			flash.Error(errorMsg)
 			flash.Store(&c.Controller)
-			c.redirect(beego.URLFor("LoginController.LoginIn"))
+			c.redirect(beego.URLFor("AuthController.Login"))
 		}
 	}
+
 	c.TplName = "login/login.html"
+}
+
+// 登出
+func (c *AuthController) Logout() {
+	session := c.StartSession()
+	defer session.SessionRelease(c.Ctx.ResponseWriter)
+	session.Delete("id")
+	session.Delete("auth")
+	c.redirect(beego.URLFor("AuthController.Login"))
 }
