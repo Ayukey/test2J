@@ -3,22 +3,16 @@
         <div class="layui-form-item">
             <label class="layui-form-label">工号</label>
             <div class="layui-input-block " style="width: 400px">
-                <input type="text" name="account" id="account" lay-verify="required" autocomplete="off" placeholder="工号" class="layui-input"
-                    value="{{.Source.account}}">
+                <input type="text" name="account" id="account" lay-verify="required" autocomplete="off" placeholder="工号"
+                    class="layui-input" value="{{.user.account}}">
             </div>
         </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label">姓名</label>
             <div class="layui-input-block " style="width: 400px">
-                <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" placeholder="姓名" class="layui-input" value="{{.Source.name}}">
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">手机</label>
-            <div class="layui-input-block " style="width: 400px">
-                <input type="text" name="phone" id="phone" autocomplete="off" placeholder="手机" class="layui-input" value="{{.Source.phone}}">
+                <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" placeholder="姓名"
+                    class="layui-input" value="{{.user.name}}">
             </div>
         </div>
 
@@ -27,7 +21,7 @@
             <div class="layui-input-inline">
                 <select name="position_id" lay-verify="required" lay-search="" style="width: 100%">
                     <option value="">请选择职位</option>
-                    {{range $index,$elem := .postionList}} {{if eq $elem.ID $.Source.role_id}}
+                    {{range $index,$elem := .positions}} {{if eq $elem.ID $.user.position_id}}
                     <option value="{{$elem.ID}}" selected> {{$elem.Name}}</option>
                     {{else}}
                     <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
@@ -36,35 +30,7 @@
             </div>
         </div>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label">所属部门</label>
-            <div class="layui-input-inline">
-                <select name="department_id" lay-search="" style="width: 100%">
-                    <option value="">请选择部门</option>
-                    {{range $index,$elem := .departmentList}} {{if eq $elem.ID $.Source.department_id}}
-                    <option value="{{$elem.ID}}" selected> {{$elem.Name}}</option>
-                    {{else}}
-                    <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
-                    {{end}} {{end}}
-                </select>
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">所属项目</label>
-            <div class="layui-input-inline">
-                <select name="project_id" lay-search="" style="width: 100%">
-                    <option value="">请选择项目</option>
-                    {{range $index,$elem := .projectList}} {{if eq $elem.ID $.Source.project_id}}
-                    <option value="{{$elem.ID}}" selected> {{$elem.Name}}</option>
-                    {{else}}
-                    <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
-                    {{end}} {{end}}
-                </select>
-            </div>
-        </div>
-
-        <input type="hidden" id="id" name="id" value="{{.Source.id}}">
+        <input type="hidden" id="id" name="id" value="{{.user.id}}">
 
         <div class="layui-form-item">
             <div class="layui-input-block">
@@ -76,22 +42,20 @@
 </div>
 <script>
     layui.use(['form', 'element', 'layer', 'jquery'], function () {
-        var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
-        var $ = layui.jquery;
+        let form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+        let $ = layui.jquery;
 
         form.on('submit(sub)', function (data) {
-            var form_data = data.field;
-            console.log(form_data);
-            $.post('{{urlfor "UserInfoController.AjaxSave"}}', form_data, function (out) {
-                console.log(out)
-                if (out.status == 0) {
+            $.post('{{urlfor "UserInfoController.AjaxSave"}}', data.field, function (resp) {
+                if (resp.code == 0) {
                     layer.msg("操作成功", {
-                        icon: 1
+                        icon: 1,
+                        time: 500
                     }, function () {
                         window.location.href = "/UserInfo/List"
                     })
                 } else {
-                    layer.msg(out.message)
+                    layer.msg(resp.message)
                 }
             }, "json");
             return false;

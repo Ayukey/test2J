@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"jg2j_server/logic"
 	"jg2j_server/models"
 	"strconv"
 
@@ -20,8 +21,8 @@ type ProjectScoreRank struct {
 
 func (c *ProjectScoreRankController) List() {
 	c.Data["pageTitle"] = "项目季度汇总排名"
-	types := models.SearchAllScoreTypeInfoIList()
-	c.Data["types"] = types
+	templates := models.SearchAllProjectTemplate1s()
+	c.Data["templates"] = templates
 	c.display()
 }
 
@@ -30,17 +31,18 @@ func (c *ProjectScoreRankController) Search() {
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	projectList := models.SearchProjectSumPubInfoByFilters(filters...)
-	if len(projectList) == 0 {
-		c.ajaxMsg("该季度没有任何项目发布评分", MSG_ERR)
+	filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
+	filters := []models.DBFilter{filter1, filter2}
+
+	records := models.SearchProjectReleaseRecordsByFilters(filters...)
+	if len(records) == 0 {
+		c.ajaxMsg(MSG_ERR, "该季度没有任何项目发布评分")
 	}
 
-	typeList := models.SearchScoreTypeInfoIIByTID(tid)
+	templates := models.SearchProjectTemplate2sByTID(tid)
 
-	eachCount := 70 / len(typeList)
+	eachCount := 70 / len(templates)
 
 	colList := make([]map[string]interface{}, 0)
 	col := make(map[string]interface{})
@@ -57,7 +59,7 @@ func (c *ProjectScoreRankController) Search() {
 
 	colList = append(colList, col, col1)
 
-	for i, t := range typeList {
+	for i, t := range templates {
 		col := make(map[string]interface{})
 		col["field"] = "score" + strconv.Itoa(i)
 		col["align"] = "center"
@@ -87,38 +89,39 @@ func (c *ProjectScoreRankController) Table() {
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	projectList := models.SearchProjectSumPubInfoByFilters(filters...)
-	if len(projectList) == 0 {
-		c.ajaxMsg("该季度没有任何项目发布评分", MSG_ERR)
+	filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
+	filters := []models.DBFilter{filter1, filter2}
+
+	records := models.SearchProjectReleaseRecordsByFilters(filters...)
+	if len(records) == 0 {
+		c.ajaxMsg(MSG_ERR, "该季度没有任何项目发布评分")
 	}
 
 	list := make([]map[string]string, 0)
 
-	for _, p := range projectList {
+	for _, r := range records {
 		col := make(map[string]string)
-		project, _ := models.SearchProjectInfoByID(p.ProjectID)
+		project, _ := models.SearchProjectByID(r.PID)
 		col["name"] = project.Name
 
-		filters := make([]interface{}, 0)
-		filters = append(filters, "year", year)
-		filters = append(filters, "quarter", quarter)
-		filters = append(filters, "scoretype_id", tid)
-		filters = append(filters, "project_id", p.ProjectID)
+		filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
+		filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
+		filter3 := models.DBFilter{Key: "tid", Value: tid}         // 模版ID
+		filter4 := models.DBFilter{Key: "pid", Value: r.PID}       // 项目ID
+		filters := []models.DBFilter{filter1, filter2, filter3, filter4}
 
-		recordIList := models.SearchScoreRecordInfoIByFilters(filters...)
-		if len(recordIList) > 0 {
-			recordI := recordIList[0]
-			col["totalscore"] = strconv.FormatFloat(recordI.TotalScore, 'f', 1, 64)
+		record1s := models.SearchProjectScoreRecord1sByFilters(filters...)
+		if len(record1s) > 0 {
+			record1 := record1s[0]
+			col["totalscore"] = strconv.FormatFloat(record1.TotalScore, 'f', 1, 64)
 		}
 
-		recordIIList := models.SerachScoreTypeRecordInfoIIList(year, quarter, tid, p.ProjectID)
-		for i, r := range recordIIList {
+		template2Records := logic.SearchProjectTemplate2Records(year, quarter, tid, r.PID)
+		for i, tr := range template2Records {
 			key := "score" + strconv.Itoa(i)
-			if r.Record != nil {
-				col[key] = strconv.FormatFloat(r.Record.TotalScore*r.Type.Percentage, 'f', 1, 64)
+			if tr.Record != nil {
+				col[key] = strconv.FormatFloat(tr.Record.TotalScore*tr.Template.Percentage, 'f', 1, 64)
 			}
 		}
 
@@ -136,6 +139,5 @@ func (c *ProjectScoreRankController) Table() {
 		c["id"] = fmt.Sprintf("%d", i+1)
 	}
 
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+	c.ajaxList(MSG_OK, "成功", list)
 }

@@ -15,19 +15,15 @@ func (c *STUserMappingIController) List() {
 	c.Data["pageTitle"] = "一级评分模版用户权限列表"
 	tid, _ := c.GetInt("id", 0)
 
-	//查询条件
-	filters := make([]interface{}, 0)
-	filters = append(filters, "status", 1)
-	result := models.SearchAllUserInfoList(filters...)
+	result := models.SearchAllUsers()
 	list := make([]map[string]interface{}, len(result))
 	for k, v := range result {
 		row := make(map[string]interface{})
 		row["id"] = v.ID
 		row["account"] = v.Account
 		row["name"] = v.Name
-		row["phone"] = v.Phone
-		u, _ := models.SearchSTUserMappingIByTUID(tid, v.ID)
-		if u == nil {
+		_, err := models.SearchPt1PermissionsByTUID(tid, v.ID)
+		if err != nil {
 			row["on"] = 0
 		} else {
 			row["on"] = 1
@@ -53,13 +49,13 @@ func (c *STUserMappingIController) AjaxSave() {
 
 	fmt.Println(users)
 
-	models.ClearSTUserMappingIListByTID(tid)
+	models.ClearPt1PermissionsByTID(tid)
 
 	for _, u := range users {
-		st := new(models.STUserMappingI)
-		st.TID = tid
-		st.UserID, _ = strconv.Atoi(u)
-		models.AddSTUserMappingI(st)
+		permission := new(models.Pt1Permission)
+		permission.TID = tid
+		permission.UID, _ = strconv.Atoi(u)
+		models.AddPt1Permission(permission)
 	}
-	c.ajaxMsg("", MSG_OK)
+	c.ajaxMsg(MSG_OK, "")
 }

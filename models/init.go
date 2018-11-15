@@ -8,6 +8,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+type DBFilter struct {
+	Key   string
+	Value interface{}
+}
+
 func init() {
 	dbhost := beego.AppConfig.String("db.host")
 	dbport := beego.AppConfig.String("db.port")
@@ -25,37 +30,46 @@ func init() {
 	}
 
 	orm.RegisterDataBase("default", "mysql", dsn)
-	orm.RegisterModel(new(Admin),
+	orm.RegisterModelWithPrefix(
+		beego.AppConfig.String("db.prefix"),
+		new(Admin),
 		new(Role),
-		new(RoleAuth),
 		new(Auth),
-		new(PositionRoleInfo),
-		new(UserInfo),
-		new(DepartmentInfo),
-		new(ProjectInfo),
-		new(ProjectorInfo),
-		new(ScoreTypeInfoI),
-		new(ScoreTypeInfoII),
-		new(ScoreTypeInfoIII),
-		new(ScoreRecordInfoI),
-		new(ScoreRecordInfoII),
-		new(ScoreRecordInfoIII),
-		new(STUserMappingI),
-		new(STUserMappingII),
-		new(STUserMappingIII),
-		new(ProjectorScoreRecords),
-		new(ProjectorScoreTypeInfo),
-		new(ProjectorSumPubInfo),
-		new(ProjectorScoreSumInfo),
-		new(DepartmentorScoreRecords),
-		new(DepartmentorScoreTypeInfo),
-		new(DepartmentorSumPubInfo),
-		new(DepartmentorScoreSumInfo),
-		new(ProjectSumPubInfo))
+
+		new(User),
+		new(Department),
+		new(Position),
+		new(Project),
+
+		new(ProjectTemplate1),
+		new(ProjectTemplate2),
+		new(ProjectTemplate3),
+
+		new(ProjectScoreRecord1),
+		new(ProjectScoreRecord2),
+		new(ProjectScoreRecord3),
+
+		new(Pt1Permission),
+		new(Pt2Permission),
+
+		new(ProjectReleaseRecord),
+
+		new(DepartmentLeaderTemplate),
+		new(DepartmentLeaderScoreRecord),
+		new(DepartmentLeaderSumScoreRecord),
+		new(DepartmentLeaderReleaseRecord),
+
+		new(ProjectLeaderTemplate),
+		new(ProjectLeaderScoreRecord),
+		new(ProjectLeaderSumScoreRecord),
+		new(ProjectLeaderReleaseRecord),
+	)
 
 	if beego.AppConfig.String("runmode") == "dev" {
 		orm.Debug = true
 	}
+
+	orm.RunSyncdb("default", false, true)
 }
 
 func TableName(name string) string {

@@ -22,41 +22,43 @@ func (c *ScoreProjectorRecordInfoController) Score() {
 
 // 查询评分信息
 func (c *ScoreProjectorRecordInfoController) Search() {
-	projectorID, _ := c.GetInt("projectorID", 0)       // 项目负责人（打分）
-	departmentorID, _ := c.GetInt("departmentorID", 0) // 部门负责人（被打分）
+	uid, _ := c.GetInt("uid", 0)  // 项目负责人（被打分）
+	suid, _ := c.GetInt("uid", 0) // 部门负责人（打分）
+	projectID, _ := c.GetInt("projectId", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	typeRecordInfos := logic.SearchProjectorScoreTypeRecordInfos(year, quarter, projectorID, departmentorID)
+	templateRecords := logic.SearchProjectLeaderTemplateRecords(year, quarter, uid, suid, projectID)
 
-	list := make([]map[string]interface{}, len(typeRecordInfos))
+	list := make([]map[string]interface{}, len(templateRecords))
 
-	for i, typeRecordInfo := range typeRecordInfos {
+	for i, tr := range templateRecords {
 		row := make(map[string]interface{})
-		row["id"] = typeRecordInfo.Type.ID
-		row["name"] = typeRecordInfo.Type.Name
-		row["max_score"] = typeRecordInfo.Type.ScoreLimit
-		if typeRecordInfo.Record == nil {
+		row["id"] = tr.Template.ID
+		row["name"] = tr.Template.Name
+		row["max_score"] = tr.Template.ScoreLimit
+		if tr.Record == nil {
 			row["score"] = "暂无评分"
 		} else {
-			row["score"] = typeRecordInfo.Record.Score
+			row["score"] = tr.Record.Score
 		}
 		list[i] = row
 	}
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+
+	c.ajaxList(MSG_OK, "成功", list)
 }
 
 func (c *ScoreProjectorRecordInfoController) Edit() {
 	tid, _ := c.GetInt("tid", 0)
-	projectorID, _ := c.GetInt("projectorID", 0)       // 项目负责人（打分）
-	departmentorID, _ := c.GetInt("departmentorID", 0) // 部门负责人（被打分）
+	uid, _ := c.GetInt("uid", 0)  // 项目负责人（被打分）
+	suid, _ := c.GetInt("uid", 0) // 部门负责人（打分）
+	projectID, _ := c.GetInt("projectId", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	typeRecordInfo := logic.SearchSingleProjectorScoreTypeRecordInfoByTID(year, quarter, projectorID, departmentorID, tid)
+	templateRecord := logic.SearchProjectLeaderTemplateRecordByTID(year, quarter, uid, suid, tid, projectID)
 
-	if typeRecordInfo == nil {
+	if templateRecord == nil {
 		c.Ctx.WriteString("数据不存在")
 		return
 	}
@@ -64,13 +66,13 @@ func (c *ScoreProjectorRecordInfoController) Edit() {
 	row := make(map[string]interface{})
 	row["year"] = year
 	row["quarter"] = quarter
-	row["projectorID"] = projectorID
-	row["departmentorID"] = departmentorID
-	row["tid"] = typeRecordInfo.Type.ID
-	row["name"] = typeRecordInfo.Type.Name
-	row["maxscore"] = typeRecordInfo.Type.ScoreLimit
-	if typeRecordInfo.Record != nil {
-		row["score"] = typeRecordInfo.Record.Score
+	row["uid"] = uid
+	row["suid"] = suid
+	row["tid"] = templateRecord.Template.ID
+	row["name"] = templateRecord.Template.Name
+	row["maxscore"] = templateRecord.Template.ScoreLimit
+	if templateRecord.Record != nil {
+		row["score"] = templateRecord.Record.Score
 	} else {
 		row["score"] = "暂无评分"
 	}
@@ -83,55 +85,56 @@ func (c *ScoreProjectorRecordInfoController) Edit() {
 //存储资源
 func (c *ScoreProjectorRecordInfoController) AjaxSave() {
 	tid, _ := c.GetInt("tid", 0)
-	projectorID, _ := c.GetInt("projectorID", 0)       // 项目负责人（被打分）
-	departmentorID, _ := c.GetInt("departmentorID", 0) // 部门负责人（打分）
+	uid, _ := c.GetInt("uid", 0)  // 项目负责人（被打分）
+	suid, _ := c.GetInt("uid", 0) // 部门负责人（打分）
+	projectID, _ := c.GetInt("projectId", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 	score, _ := c.GetFloat("score", 0)
 
-	user, _ := models.SearchUserInfoByID(projectorID)
+	templateRecord := logic.SearchProjectLeaderTemplateRecordByTID(year, quarter, uid, suid, tid, projectID)
 
-	typeRecordInfo := logic.SearchSingleProjectorScoreTypeRecordInfoByTID(year, quarter, projectorID, departmentorID, tid)
-
-	if typeRecordInfo.Record == nil {
-		record := new(models.ProjectorScoreRecords)
-		record.UserID = departmentorID
-		record.ScoreUserID = projectorID
+	if templateRecord.Record == nil {
+		record := new(models.ProjectLeaderScoreRecord)
+		record.UID = uid
+		record.SUID = suid
 		record.Score = score
 		record.TID = tid
 		record.Year = year
 		record.Quarter = quarter
-		record.ProjectID = user.ProjectID
+		record.ProjectID = projectID
 
-		if _, err := models.AddProjectorScoreRecords(record); err != nil {
-			c.ajaxMsg(err.Error(), MSG_ERR)
+		if err := models.AddProjectLeaderScoreRecord(record); err != nil {
+			c.ajaxMsg(MSG_ERR, err.Error())
 		}
 	} else {
-		record := typeRecordInfo.Record
+		record := templateRecord.Record
 		record.Score = score
 		if err := record.Update(); err != nil {
-			c.ajaxMsg(err.Error(), MSG_ERR)
+			c.ajaxMsg(MSG_ERR, err.Error())
 		}
 	}
 
 	// 更新总记录
-	err := logic.SaveProjectorScoreBySingleDepartmentor(year, quarter, projectorID, departmentorID)
+	err := logic.SaveProjectLeaderSumScoreRecord(year, quarter, uid, suid, projectID)
 	if err != nil {
-		c.ajaxMsg(err.Error(), MSG_ERR)
+		c.ajaxMsg(MSG_ERR, err.Error())
 	}
 
 	// 如果已发布，更新发布信息
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	filters = append(filters, "user_id", projectorID)
-	sumPubInfos := models.SearchProjectorSumPubInfoByFilters(filters...)
-	if len(sumPubInfos) != 0 {
-		err := logic.ReleaseProjectorScore(year, quarter, projectorID)
+	filter1 := models.DBFilter{Key: "year", Value: year}            // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter}      // 季度
+	filter3 := models.DBFilter{Key: "uid", Value: uid}              // 用户ID
+	filter4 := models.DBFilter{Key: "project_id", Value: projectID} // 项目ID
+	filters := []models.DBFilter{filter1, filter2, filter3, filter4}
+
+	records := models.SearchProjectLeaderReleaseRecordsByFilters(filters...)
+	if len(records) != 0 {
+		err := logic.ReleaseProjectLeaderScoreRecord(year, quarter, uid, projectID)
 		if err != nil {
-			c.ajaxMsg(err.Error(), MSG_ERR)
+			c.ajaxMsg(MSG_ERR, err.Error())
 		}
 	}
 
-	c.ajaxMsg("", MSG_OK)
+	c.ajaxMsg(MSG_OK, "success")
 }

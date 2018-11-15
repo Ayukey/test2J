@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"jg2j_server/logic"
 	"jg2j_server/models"
 )
 
@@ -11,8 +12,8 @@ type ReleaseProjectScoreController struct {
 
 func (c *ReleaseProjectScoreController) Release() {
 	c.Data["pageTitle"] = "发布项目评分"
-	projectInfos := models.SearchAllProjectInfo()
-	c.Data["projectList"] = projectInfos
+	projects := models.SearchAllProjects()
+	c.Data["projects"] = projects
 	c.display()
 }
 
@@ -22,40 +23,41 @@ func (c *ReleaseProjectScoreController) AjaxSave() {
 	year, _ := c.GetInt("year")
 	quarter, _ := c.GetInt("quarter")
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	filters = append(filters, "project_id", pid)
-	recordList := models.SearchProjectSumPubInfoByFilters(filters...)
-	if len(recordList) != 0 {
-		c.ajaxMsg("该季度项目评分已发布", MSG_ERR)
+	filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
+	filter3 := models.DBFilter{Key: "project_id", Value: pid}  // 项目ID
+	filters := []models.DBFilter{filter1, filter2, filter3}
+
+	records := models.SearchProjectReleaseRecordsByFilters(filters...)
+	if len(records) != 0 {
+		c.ajaxMsg(MSG_ERR, "该季度项目评分已发布")
 	}
 
-	typeReocrdIList := models.SerachScoreTypeRecordInfoIList(year, quarter, pid)
+	template1Records := logic.SearchProjectTemplate1Records(year, quarter, pid)
 
 	error := "以下二级评分项还未完成评分: <br>"
 
 	list := make([]string, 0)
-	for _, t := range typeReocrdIList {
-		typeReocrdIIList := models.SerachScoreTypeRecordInfoIIList(year, quarter, t.Type.ID, pid)
-		for _, r := range typeReocrdIIList {
-			if r.Record == nil {
-				list = append(list, r.Type.Name)
-				error += r.Type.Name + "<br>"
+	for _, tr1 := range template1Records {
+		template2Records := logic.SearchProjectTemplate2Records(year, quarter, tr1.Template.ID, pid)
+		for _, tr2 := range template2Records {
+			if tr2.Record == nil {
+				list = append(list, tr2.Template.Name)
+				error += tr2.Template.Name + "<br>"
 			}
 		}
 	}
 
 	if len(list) == 0 {
-		info := new(models.ProjectSumPubInfo)
-		info.Year = year
-		info.Quarter = quarter
-		info.ProjectID = pid
-		if _, err := models.AddProjectSumPubInfo(info); err != nil {
-			c.ajaxMsg(err.Error(), MSG_ERR)
+		record := new(models.ProjectReleaseRecord)
+		record.Year = year
+		record.Quarter = quarter
+		record.PID = pid
+		if err := models.AddProjectReleaseRecord(record); err != nil {
+			c.ajaxMsg(MSG_ERR, err.Error())
 		}
-		c.ajaxMsg("", MSG_OK)
+		c.ajaxMsg(MSG_OK, "")
 	} else {
-		c.ajaxMsg(error, MSG_ERR)
+		c.ajaxMsg(MSG_ERR, error)
 	}
 }

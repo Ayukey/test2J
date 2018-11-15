@@ -7,51 +7,44 @@
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
     </script>
 
-    <input type="hidden" id="tid" name="tid" value="{{.Source.tid}}">
-    <input type="hidden" id="ttid" name="ttid" value="{{.Source.ttid}}">
-    <input type="hidden" id="pid" name="pid" value="{{.Source.pid}}">
+    <input type="hidden" id="template1ID" name="template1ID" value="{{.Source.template1_id}}">
+    <input type="hidden" id="template2ID" name="template2ID" value="{{.Source.template2_id}}">
+    <input type="hidden" id="projectID" name="projectID" value="{{.Source.project_id}}">
     <input type="hidden" id="year" name="year" value="{{.Source.year}}">
     <input type="hidden" id="quarter" name="quarter" value="{{.Source.quarter}}">
 </div>
 <script>
     layui.use(['table', 'form', 'element', 'jquery'], function () {
-        var table = layui.table;
-        var form = layui.form;
-        var element = layui.element;
-        var $ = layui.jquery;
+        let table = layui.table;
+        let form = layui.form;
+        let element = layui.element;
+        let $ = layui.jquery;
 
         //方法级渲染
         table.render({
             elem: '#table_list',
-            url: '/ScoreRecordInfoIII/Search?year=' + $("#year").val() + '&quarter=' + $(
-                    "#quarter").val() + '&pid=' + $("#pid").val() + '&tid=' + $("#tid").val() +
-                '&ttid=' + $("#ttid").val(),
+            url: `/ScoreRecordInfoIII/Search?year=${$("#year").val()}&quarter=${$(
+                            "#quarter").val()}&project_id=${$("#projectID").val()}&template1_id=${$(
+                "#template1ID").val()}&template2_id=${$("#template2ID").val()}`,
             cols: [
                 [{
-                    field: 'id',
+                    field: 'template3_id',
                     title: 'ID',
                     align: 'center',
                     sort: true,
                     width: '10%'
                 }, {
-                    field: 'rid',
-                    align: 'center',
-                    minWidth: '0%',
-                    width: '0%',
-                    type: 'space',
-                    style: 'display: none'
-                }, {
-                    field: 'name',
+                    field: 'template3_name',
                     align: 'center',
                     title: '名称',
                     width: '40%'
                 }, {
-                    field: 'max_score',
+                    field: 'template3_maxscore',
                     align: 'center',
                     title: '总分',
                     width: '15%'
                 }, {
-                    field: 'score',
+                    field: 'record3_score',
                     align: 'center',
                     title: '得分',
                     width: '15%'
@@ -71,16 +64,16 @@
         //监听工具条
         table.on('tool(table_filter)', function (obj) {
             var data = obj.data;
+            console.log(data)
             if (obj.event === 'edit') {
                 layer.open({
                     type: 2,
                     shade: 0.3,
                     id: 1,
                     title: "编辑项目评分记录",
-                    content: '/ScoreRecordInfoIII/Edit?id=' + data.id + '&rid=' + data.rid +
-                        '&year=' + $("#year").val() + '&quarter=' + $(
-                            "#quarter").val() + '&pid=' + $("#pid").val() + '&tid=' + $("#tid")
-                        .val() + '&ttid=' + $("#ttid").val(),
+                    content: `/ScoreRecordInfoIII/Edit?year=${$("#year").val()}&quarter=${$(
+                            "#quarter").val()}&project_id=${$("#projectID").val()}&template1_id=${$(
+                "#template1ID").val()}&template2_id=${$("#template2ID").val()}&template3_id=${data.template3_id}&record3_id=${data.record3_id}`,
                     area: ['600px', '300px'],
                 });
             } else {

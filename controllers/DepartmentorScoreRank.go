@@ -20,15 +20,16 @@ func (c *DepartmentorScoreRankController) List() {
 }
 
 func (c *DepartmentorScoreRankController) Search() {
-	year, _ := c.GetInt("year", 0)
-	quarter, _ := c.GetInt("quarter", 0)
+	// year, _ := c.GetInt("year", 0)
+	// quarter, _ := c.GetInt("quarter", 0)
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	departmentorTypes := models.SearchAllDepartmentorScoreTypeInfoList()
+	// filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
+	// filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
+	// filters := []models.DBFilter{filter1, filter2}
 
-	eachWidth := 70 / len(departmentorTypes)
+	templates := models.SearchAllDepartmentLeaderTemplates()
+
+	eachWidth := 70 / len(templates)
 
 	colList := make([]map[string]interface{}, 0)
 	col := make(map[string]interface{})
@@ -45,7 +46,7 @@ func (c *DepartmentorScoreRankController) Search() {
 
 	colList = append(colList, col, col1)
 
-	for _, t := range departmentorTypes {
+	for _, t := range templates {
 		col := make(map[string]interface{})
 		col["field"] = "score" + strconv.Itoa(t.ID)
 		col["align"] = "center"
@@ -74,35 +75,36 @@ func (c *DepartmentorScoreRankController) Table() {
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	sumPubInfos := models.SearchDepartmentorSumPubInfoByOrder(filters...)
-	if len(sumPubInfos) == 0 {
-		c.ajaxMsg("该季度没有任何部门负责人评分发布", MSG_ERR)
+	filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
+	filters := []models.DBFilter{filter1, filter2}
+
+	records := models.SearchDepartmentLeaderReleaseRecordsByFilters(filters...)
+	if len(records) == 0 {
+		c.ajaxMsg(MSG_ERR, "该季度没有任何部门负责人评分发布")
 	}
 
-	list := make([]map[string]interface{}, len(sumPubInfos))
+	list := make([]map[string]interface{}, len(records))
 
-	for i, info := range sumPubInfos {
+	for i, record := range records {
 		col := make(map[string]interface{})
-		user, _ := models.SearchUserInfoByID(info.UserID)
-		department, _ := models.SearchDepartmentInfoByID(user.DepartmentID)
-		typeRecordInfos := logic.SearchDepartmentorScoreTypeRecordInfosBySumData(year, quarter, info.UserID)
+		user, _ := models.SearchUserByID(record.UID)
+		department, _ := models.SearchDepartmentByID(record.DepartmentID)
+		templateRecords := logic.SearchDepartmentLeaderTemplateAverageRecords(year, quarter, record.UID, record.DepartmentID)
 
 		col["id"] = i + 1
 		col["name"] = user.Name + " (" + department.Name + ")"
 
-		for _, typeRecordInfo := range typeRecordInfos {
-			key := "score" + strconv.Itoa(typeRecordInfo.Type.ID)
-			col[key] = strconv.FormatFloat(typeRecordInfo.Score, 'f', 2, 64)
+		for _, templateRecord := range templateRecords {
+			key := "score" + strconv.Itoa(templateRecord.Template.ID)
+			col[key] = strconv.FormatFloat(templateRecord.Score, 'f', 2, 64)
 		}
 
-		col["totalscore"] = strconv.FormatFloat(info.Score, 'f', 2, 64)
+		col["totalscore"] = strconv.FormatFloat(record.Score, 'f', 2, 64)
 		list[i] = col
 	}
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+
+	c.ajaxList(MSG_OK, "成功", list)
 }
 
 // 下载
@@ -113,7 +115,7 @@ func (c *DepartmentorScoreRankController) Download() {
 	filePath := "static/excel/DepartmentorScore" + "_" + strconv.Itoa(year) + "_" + strconv.Itoa(quarter) + ".xlsx"
 	title := "部门负责人" + strconv.Itoa(year) + "第" + strconv.Itoa(quarter) + "季度互评汇总"
 
-	departmentorTypes := models.SearchAllDepartmentorScoreTypeInfoList()
+	templates := models.SearchAllDepartmentLeaderTemplates()
 
 	xlsx := excelize.NewFile()
 	centerStyle, _ := xlsx.NewStyle(`{"alignment":{"horizontal":"center"}}`)
@@ -122,17 +124,17 @@ func (c *DepartmentorScoreRankController) Download() {
 
 	colList := make([]string, 0)
 	colList = append(colList, "排名", "姓名")
-	for _, t := range departmentorTypes {
+	for _, t := range templates {
 		colList = append(colList, t.Name+"("+strconv.FormatFloat(t.ScoreLimit, 'f', 0, 64)+"分)")
 	}
 	colList = append(colList, "总分")
 
 	// 内容
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	departmentorRecords := models.SearchDepartmentorSumPubInfoByOrder(filters...)
+	filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
+	filters := []models.DBFilter{filter1, filter2}
+	records := models.SearchDepartmentLeaderReleaseRecordsByOrder(filters...)
 
 	xlsx.SetColWidth("Sheet1", "A", "A", 20)
 	xlsx.SetColWidth("Sheet1", "B", "B", 20)
@@ -169,10 +171,10 @@ func (c *DepartmentorScoreRankController) Download() {
 
 	idex := 2
 
-	for i, d := range departmentorRecords {
-		typeRecords := logic.SearchDepartmentorScoreTypeRecordInfosBySumData(year, quarter, d.UserID)
-		user, _ := models.SearchUserInfoByID(d.UserID)
-		department, _ := models.SearchDepartmentInfoByID(user.DepartmentID)
+	for i, record := range records {
+		templateRecords := logic.SearchDepartmentLeaderTemplateAverageRecords(year, quarter, record.UID, record.DepartmentID)
+		user, _ := models.SearchUserByID(record.UID)
+		department, _ := models.SearchDepartmentByID(record.DepartmentID)
 
 		idex++
 		xlsx.SetCellValue("Sheet1", "A"+strconv.Itoa(idex), i+1)
@@ -180,19 +182,19 @@ func (c *DepartmentorScoreRankController) Download() {
 		xlsx.SetCellStyle("Sheet1", "A"+strconv.Itoa(idex), "A"+strconv.Itoa(idex), centerStyle)
 		xlsx.SetCellValue("Sheet1", "B"+strconv.Itoa(idex), user.Name+" ("+department.Name+")")
 		xlsx.SetCellStyle("Sheet1", "B"+strconv.Itoa(idex), "B"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "C"+strconv.Itoa(idex), strconv.FormatFloat(typeRecords[0].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "C"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[0].Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "C"+strconv.Itoa(idex), "C"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "D"+strconv.Itoa(idex), strconv.FormatFloat(typeRecords[1].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "D"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[1].Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "D"+strconv.Itoa(idex), "D"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "E"+strconv.Itoa(idex), strconv.FormatFloat(typeRecords[2].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "E"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[2].Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "E"+strconv.Itoa(idex), "E"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "F"+strconv.Itoa(idex), strconv.FormatFloat(typeRecords[3].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "F"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[3].Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "F"+strconv.Itoa(idex), "F"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "G"+strconv.Itoa(idex), strconv.FormatFloat(typeRecords[4].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "G"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[4].Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "G"+strconv.Itoa(idex), "G"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "H"+strconv.Itoa(idex), strconv.FormatFloat(typeRecords[5].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "H"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[5].Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "H"+strconv.Itoa(idex), "H"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "I"+strconv.Itoa(idex), strconv.FormatFloat(d.Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "I"+strconv.Itoa(idex), strconv.FormatFloat(record.Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "I"+strconv.Itoa(idex), "I"+strconv.Itoa(idex), centerStyle)
 	}
 

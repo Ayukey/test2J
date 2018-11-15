@@ -2,7 +2,7 @@
     <div class="layui-row" style="margin-top: 20px;">
         <div class="layui-col-xs6">
             <div class="layui-btn-group">
-                <button class="layui-btn" id="add_api">新增项目</button>
+                <button class="layui-btn" id="add_api">添加项目</button>
             </div>
         </div>
     </div>
@@ -11,17 +11,15 @@
     </table>
 
     <script type="text/html" id="bar">
-        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="member">成员</a>
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-        <!-- <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a> -->
     </script>
 </div>
 <script>
     layui.use(['table', 'form', 'element', 'jquery'], function () {
-        var table = layui.table;
-        var form = layui.form;
-        var element = layui.element;
-        var $ = layui.jquery;
+        let table = layui.table;
+        let form = layui.form;
+        let element = layui.element;
+        let $ = layui.jquery;
 
         // 加载初始数据
         table.render({
@@ -29,43 +27,24 @@
             url: '/ProjectInfo/Table',
             cols: [
                 [{
-                    field: 'id',
-                    title: 'ID',
-                    align: 'center',
-                    sort: true,
-                    width: '10%'
-                }, {
                     field: 'name',
                     align: 'center',
                     title: '项目名称',
-                    width: '20%'
+                    width: '30%'
                 }, {
-                    field: 'userName',
+                    field: 'leaderName',
                     align: 'center',
                     title: '负责人',
-                    width: '10%'
-                }, {
-                    field: 'start_time',
-                    align: 'center',
-                    title: '开始时间',
-                    width: '20%'
-                }, {
-                    field: 'end_time',
-                    align: 'center',
-                    title: '结束时间',
-                    width: '20%'
+                    width: '30%'
                 }, {
                     fixed: 'right',
                     align: 'center',
                     title: '操作',
                     toolbar: '#bar',
-                    width: '20%'
+                    width: '40%'
                 }]
             ],
             id: 'listReload',
-            limit: 20,
-            limits: [20, 40, 60],
-            page: true,
             height: "full-130"
         });
 
@@ -80,15 +59,8 @@
             if (obj.event === 'edit') {
                 // 跳转至编辑项目
                 window.location.href = '/ProjectInfo/Edit?id=' + data.id
-            } else if (obj.event === 'member') {
-                // 跳转至项目成员
-                window.location.href = "/ProjectInfo/Members?id=" + data.id
             }
         });
 
-        $('.demoTable .layui-btn').on('click', function () {
-            var type = $(this).data('type');
-            active[type] ? active[type].call(this) : '';
-        });
     });
 </script>

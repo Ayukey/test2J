@@ -20,38 +20,40 @@ func (c *RecordProjectorScoreController) Score() {
 
 func (c *RecordProjectorScoreController) Search() {
 	uid, _ := c.GetInt("uid", 0)
+	projectId, _ := c.GetInt("projectId", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	filters = append(filters, "user_id", uid)
-	recordList := models.SearchProjectorSumPubInfoByOrder(filters...)
-	if len(recordList) == 0 {
-		c.ajaxMsg("该季度项目负责人评分未发布", MSG_ERR)
+	filter1 := models.DBFilter{Key: "year", Value: year}            // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter}      // 季度
+	filter3 := models.DBFilter{Key: "uid", Value: uid}              // 用户ID
+	filter4 := models.DBFilter{Key: "project_id", Value: projectId} // 项目ID
+	filters := []models.DBFilter{filter1, filter2, filter3, filter4}
+
+	records := models.SearchProjectLeaderReleaseRecordsByOrder(filters...)
+	if len(records) == 0 {
+		c.ajaxMsg(MSG_ERR, "该季度项目负责人评分未发布")
 	}
 
-	list := make([]map[string]interface{}, len(recordList))
+	list := make([]map[string]interface{}, len(records))
 
-	for i, v := range recordList {
+	for i, r := range records {
 		row := make(map[string]interface{})
 		row["id"] = i + 1
-		user, _ := models.SearchUserInfoByID(v.UserID)
-		if user != nil {
+		user, err := models.SearchUserByID(r.UID)
+		if err == nil {
 			row["name"] = user.Name
 		}
 
-		project, _ := models.SearchProjectInfoByID(v.ProjectID)
-		if project != nil {
+		project, err := models.SearchProjectByID(r.ProjectID)
+		if err == nil {
 			row["pname"] = project.Name
 		}
-		row["score"] = v.Score
+		row["score"] = r.Score
 		list[i] = row
 	}
 
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+	c.ajaxList(MSG_OK, "成功", list)
 }
 
 func (c *RecordProjectorScoreController) ScoreDetails() {
@@ -70,20 +72,20 @@ func (c *RecordProjectorScoreController) ScoreDetails() {
 
 func (c *RecordProjectorScoreController) SearchDetails() {
 	uid, _ := c.GetInt("uid", 0)
+	projectId, _ := c.GetInt("projectId", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	typeRecords := logic.SearchProjectorScoreTypeRecordInfosBySumData(year, quarter, uid)
+	typeRecords := logic.SearchProjectLeaderTemplateAverageRecords(year, quarter, uid, projectId)
 	list := make([]map[string]interface{}, len(typeRecords))
 	for i, tr := range typeRecords {
 		info := make(map[string]interface{})
-		info["ID"] = tr.Type.ID
-		info["Name"] = tr.Type.Name
-		info["ScoreLimit"] = tr.Type.ScoreLimit
+		info["ID"] = tr.Template.ID
+		info["Name"] = tr.Template.Name
+		info["ScoreLimit"] = tr.Template.ScoreLimit
 		info["Score"] = strconv.FormatFloat(tr.Score, 'f', 2, 64)
 		list[i] = info
 	}
 
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+	c.ajaxList(MSG_OK, "成功", list)
 }

@@ -20,14 +20,15 @@ func (c *ReleaseProjectorScoreController) Release() {
 //存储资源
 func (c *ReleaseProjectorScoreController) AjaxSave() {
 	uid, _ := c.GetInt("user_id")
+	projectID, _ := c.GetInt("projectId", 0)
 	year, _ := c.GetInt("year")
 	quarter, _ := c.GetInt("quarter")
 
-	error := logic.ReleaseProjectorScore(year, quarter, uid)
+	error := logic.ReleaseProjectLeaderScoreRecord(year, quarter, uid, projectID)
 
 	if error == nil {
-		c.ajaxMsg("", MSG_OK)
+		c.ajaxMsg(MSG_OK, "")
 	} else {
-		c.ajaxMsg(error.Error(), MSG_ERR)
+		c.ajaxMsg(MSG_ERR, error.Error())
 	}
 }

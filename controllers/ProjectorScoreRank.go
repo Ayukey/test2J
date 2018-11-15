@@ -20,9 +20,9 @@ func (c *ProjectorScoreRankController) List() {
 }
 
 func (c *ProjectorScoreRankController) Search() {
-	projectorTypes := models.SearchAllProjectorScoreTypeInfoList()
+	templates := models.SearchAllProjectLeaderTemplates()
 
-	eachWidth := 70 / len(projectorTypes)
+	eachWidth := 70 / len(templates)
 
 	colList := make([]map[string]interface{}, 0)
 	col := make(map[string]interface{})
@@ -39,7 +39,7 @@ func (c *ProjectorScoreRankController) Search() {
 
 	colList = append(colList, col, col1)
 
-	for _, t := range projectorTypes {
+	for _, t := range templates {
 		col := make(map[string]interface{})
 		col["field"] = "score" + strconv.Itoa(t.ID)
 		col["align"] = "center"
@@ -70,35 +70,35 @@ func (c *ProjectorScoreRankController) Table() {
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	sumPubInfos := models.SearchProjectorSumPubInfoByOrder(filters...)
-	if len(sumPubInfos) == 0 {
-		c.ajaxMsg("该季度没有任何项目负责人评分发布", MSG_ERR)
+	filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
+	filters := []models.DBFilter{filter1, filter2}
+
+	records := models.SearchProjectLeaderReleaseRecordsByFilters(filters...)
+	if len(records) == 0 {
+		c.ajaxMsg(MSG_ERR, "该季度没有任何项目负责人评分发布")
 	}
 
-	list := make([]map[string]interface{}, len(sumPubInfos))
+	list := make([]map[string]interface{}, len(records))
 
-	for i, info := range sumPubInfos {
+	for i, r := range records {
 		col := make(map[string]interface{})
-		user, _ := models.SearchUserInfoByID(info.UserID)
-		project, _ := models.SearchProjectInfoByID(user.ProjectID)
-		typeRecordInfos := logic.SearchProjectorScoreTypeRecordInfosBySumData(year, quarter, info.UserID)
+		user, _ := models.SearchUserByID(r.UID)
+		project, _ := models.SearchProjectByID(r.ProjectID)
+		templateRecords := logic.SearchProjectLeaderTemplateAverageRecords(year, quarter, r.UID, r.ProjectID)
 
 		col["id"] = i + 1
 		col["name"] = user.Name + " (" + project.Name + ")"
 
-		for _, typeRecordInfo := range typeRecordInfos {
-			key := "score" + strconv.Itoa(typeRecordInfo.Type.ID)
-			col[key] = strconv.FormatFloat(typeRecordInfo.Score, 'f', 2, 64)
+		for _, templateRecord := range templateRecords {
+			key := "score" + strconv.Itoa(templateRecord.Template.ID)
+			col[key] = strconv.FormatFloat(templateRecord.Score, 'f', 2, 64)
 		}
-		col["totalscore"] = strconv.FormatFloat(info.Score, 'f', 2, 64)
+		col["totalscore"] = strconv.FormatFloat(r.Score, 'f', 2, 64)
 		list[i] = col
 	}
 
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+	c.ajaxList(MSG_OK, "成功", list)
 }
 
 func (c *ProjectorScoreRankController) Download() {
@@ -108,7 +108,7 @@ func (c *ProjectorScoreRankController) Download() {
 	filePath := "static/excel/ProjectorScore" + "_" + strconv.Itoa(year) + "_" + strconv.Itoa(quarter) + ".xlsx"
 	title := "项目负责人" + strconv.Itoa(year) + "第" + strconv.Itoa(quarter) + "季度互评汇总"
 
-	projectorTypes := models.SearchAllProjectorScoreTypeInfoList()
+	templates := models.SearchAllProjectLeaderTemplates()
 
 	xlsx := excelize.NewFile()
 	centerStyle, _ := xlsx.NewStyle(`{"alignment":{"horizontal":"center"}}`)
@@ -117,17 +117,17 @@ func (c *ProjectorScoreRankController) Download() {
 
 	colList := make([]string, 0)
 	colList = append(colList, "排名", "姓名")
-	for _, t := range projectorTypes {
+	for _, t := range templates {
 		colList = append(colList, t.Name+"("+strconv.FormatFloat(t.ScoreLimit, 'f', 0, 64)+"分)")
 	}
 	colList = append(colList, "总分")
 
 	// 内容
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	projectorRecords := models.SearchProjectorSumPubInfoByOrder(filters...)
+	filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
+	filters := []models.DBFilter{filter1, filter2}
+	records := models.SearchProjectLeaderReleaseRecordsByOrder(filters...)
 
 	xlsx.SetColWidth("Sheet1", "A", "A", 20)
 	xlsx.SetColWidth("Sheet1", "B", "B", 20)
@@ -161,10 +161,10 @@ func (c *ProjectorScoreRankController) Download() {
 
 	idex := 2
 
-	for i, d := range projectorRecords {
-		typeRecords := logic.SearchProjectorScoreTypeRecordInfosBySumData(year, quarter, d.UserID)
-		user, _ := models.SearchUserInfoByID(d.UserID)
-		project, _ := models.SearchProjectInfoByID(user.ProjectID)
+	for i, r := range records {
+		templateRecords := logic.SearchProjectLeaderTemplateAverageRecords(year, quarter, r.UID, r.ProjectID)
+		user, _ := models.SearchUserByID(r.UID)
+		project, _ := models.SearchProjectByID(r.ProjectID)
 
 		idex++
 		xlsx.SetCellValue("Sheet1", "A"+strconv.Itoa(idex), i+1)
@@ -172,17 +172,17 @@ func (c *ProjectorScoreRankController) Download() {
 		xlsx.SetCellStyle("Sheet1", "A"+strconv.Itoa(idex), "A"+strconv.Itoa(idex), centerStyle)
 		xlsx.SetCellValue("Sheet1", "B"+strconv.Itoa(idex), user.Name+" ("+project.Name+")")
 		xlsx.SetCellStyle("Sheet1", "B"+strconv.Itoa(idex), "B"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "C"+strconv.Itoa(idex), strconv.FormatFloat(typeRecords[0].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "C"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[0].Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "C"+strconv.Itoa(idex), "C"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "D"+strconv.Itoa(idex), strconv.FormatFloat(typeRecords[1].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "D"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[1].Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "D"+strconv.Itoa(idex), "D"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "E"+strconv.Itoa(idex), strconv.FormatFloat(typeRecords[2].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "E"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[2].Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "E"+strconv.Itoa(idex), "E"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "F"+strconv.Itoa(idex), strconv.FormatFloat(typeRecords[3].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "F"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[3].Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "F"+strconv.Itoa(idex), "F"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "G"+strconv.Itoa(idex), strconv.FormatFloat(typeRecords[4].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "G"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[4].Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "G"+strconv.Itoa(idex), "G"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "H"+strconv.Itoa(idex), strconv.FormatFloat(d.Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "H"+strconv.Itoa(idex), strconv.FormatFloat(r.Score, 'f', 2, 64))
 		xlsx.SetCellStyle("Sheet1", "H"+strconv.Itoa(idex), "H"+strconv.Itoa(idex), centerStyle)
 	}
 

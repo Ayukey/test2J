@@ -77,12 +77,12 @@ func (c *BaseController) AdminAuth() {
 	// 左侧导航栏
 	filters := make([]interface{}, 0)
 	filters = append(filters, "status", 1)
-	if c.userID != 1 {
-		//普通管理员
-		adminAuthIds, _ := models.RoleAuthGetByIds(c.user.RoleIds)
-		adminAuthIdArr := strings.Split(adminAuthIds, ",")
-		filters = append(filters, "id__in", adminAuthIdArr)
-	}
+	// if c.userID != 1 {
+	// 	//普通管理员
+	// 	adminAuthIds, _ := models.RoleAuthGetByIds(c.user.RoleIds)
+	// 	adminAuthIdArr := strings.Split(adminAuthIds, ",")
+	// 	filters = append(filters, "id__in", adminAuthIdArr)
+	// }
 	result, _ := models.AuthGetList(1, 1000, filters...)
 	list := make([]map[string]interface{}, len(result))
 	list2 := make([]map[string]interface{}, len(result))
@@ -117,7 +117,6 @@ func (c *BaseController) AdminAuth() {
 
 	c.Data["SideMenu1"] = list[:i]  //一级菜单
 	c.Data["SideMenu2"] = list2[:j] //二级菜单
-
 	c.allowURL = allow_url + "/home/index"
 }
 
@@ -156,21 +155,20 @@ func (c *BaseController) display(tpl ...string) {
 //相关ajax
 
 //ajax返回
-func (c *BaseController) ajaxMsg(msg interface{}, msgno int) {
+func (c *BaseController) ajaxMsg(code int, msg interface{}) {
 	out := make(map[string]interface{})
-	out["status"] = msgno
-	out["message"] = msg
+	out["code"] = code
+	out["msg"] = msg
 	c.Data["json"] = out
 	c.ServeJSON()
 	c.StopRun()
 }
 
 //ajax返回 列表
-func (self *BaseController) ajaxList(msg interface{}, msgno int, count int64, data interface{}) {
+func (self *BaseController) ajaxList(code int, msg interface{}, data interface{}) {
 	out := make(map[string]interface{})
-	out["code"] = msgno
+	out["code"] = code
 	out["msg"] = msg
-	out["count"] = count
 	out["data"] = data
 	self.Data["json"] = out
 	self.ServeJSON()
@@ -180,7 +178,7 @@ func (self *BaseController) ajaxList(msg interface{}, msgno int, count int64, da
 // 业务相关
 
 //获取单个职位信息
-func getPostionRoleInfo(infoList []*models.PositionRoleInfo, id int) (info *models.PositionRoleInfo) {
+func getPostionRoleInfo(infoList []*models.Position, id int) (info *models.Position) {
 	for _, v := range infoList {
 		if v.ID == id {
 			return v
@@ -190,7 +188,7 @@ func getPostionRoleInfo(infoList []*models.PositionRoleInfo, id int) (info *mode
 }
 
 //获取单个部门信息
-func getDepartmentInfo(infoList []*models.DepartmentInfo, id int) (info *models.DepartmentInfo) {
+func getDepartmentInfo(infoList []*models.Department, id int) (info *models.Department) {
 	for _, v := range infoList {
 		if v.ID == id {
 			return v
@@ -200,7 +198,7 @@ func getDepartmentInfo(infoList []*models.DepartmentInfo, id int) (info *models.
 }
 
 //获取单个项目信息
-func getProjectInfo(infoList []*models.ProjectInfo, id int) (info *models.ProjectInfo) {
+func getProjectInfo(infoList []*models.Project, id int) (info *models.Project) {
 	for _, v := range infoList {
 		if v.ID == id {
 			return v

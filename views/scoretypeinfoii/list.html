@@ -2,7 +2,7 @@
     <div class="layui-row" style="margin-top: 20px;">
         <div class="layui-col-xs6">
             <div class="layui-btn-group">
-                <button class="layui-btn" id="add_api">新增</button>
+                <button class="layui-btn" id="add_api" lay-submit="" lay-filter="AddTemplate">添加模版</button>
             </div>
             <input type="hidden" id="tid" name="tid" value="{{.Source.tid}}">
         </div>
@@ -15,15 +15,14 @@
         <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">下级</a>
         <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="audit">权限</a>
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-        <!-- <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a> -->
     </script>
 </div>
 <script>
     layui.use(['table', 'form', 'element', 'jquery'], function () {
-        var table = layui.table;
-        var form = layui.form;
-        var element = layui.element;
-        var $ = layui.jquery;
+        let table = layui.table;
+        let form = layui.form;
+        let element = layui.element;
+        let $ = layui.jquery;
         //方法级渲染
         table.render({
             elem: '#table_list',
@@ -54,25 +53,13 @@
                 }]
             ],
             id: 'listReload',
-            page: true,
             height: "full-130"
         });
 
-        var $ = layui.$,
-            active = {
-                reload: function () {
-                    table.reload('listReload', {
-                        where: {
-                            apiName: $('#apiName').val(),
-                            status: $("#status").val()
-                        }
-                    });
-                }
-            };
-
-        $("#add_api").on("click", function () {
+        // 添加二级模版
+        form.on('submit(AddTemplate)', function () {
             window.location.href = "/ScoreTypeInfoII/Add?tid=" + $('#tid').val()
-        })
+        });
 
         //监听工具条
         table.on('tool(table_filter)', function (obj) {
@@ -93,11 +80,6 @@
             } else {
                 layer.msg('操作不存在');
             }
-        });
-
-        $('.demoTable .layui-btn').on('click', function () {
-            var type = $(this).data('type');
-            active[type] ? active[type].call(this) : '';
         });
     });
 </script>

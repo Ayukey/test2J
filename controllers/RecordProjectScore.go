@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"jg2j_server/logic"
 	"jg2j_server/models"
 	"strconv"
 
@@ -15,10 +16,10 @@ type RecordProjectScoreController struct {
 
 func (c *RecordProjectScoreController) Score1() {
 	c.Data["pageTitle"] = "项目评分记录"
-	types := models.SearchAllScoreTypeInfoIList()
-	projects := models.SearchAllProjectInfo()
+	templates := models.SearchAllProjectTemplate1s()
+	projects := models.SearchAllProjects()
 	c.Data["projects"] = projects
-	c.Data["types"] = types
+	c.Data["templates"] = templates
 	c.display()
 }
 
@@ -28,35 +29,35 @@ func (c *RecordProjectScoreController) Search1() {
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	filters = append(filters, "project_id", pid)
-	recordList := models.SearchProjectSumPubInfoByFilters(filters...)
-	if len(recordList) == 0 {
-		c.ajaxMsg("该季度项目评分未发布", MSG_ERR)
+	filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
+	filter3 := models.DBFilter{Key: "project_id", Value: pid}  // 项目ID
+	filters := []models.DBFilter{filter1, filter2, filter3}
+
+	records := models.SearchProjectReleaseRecordsByFilters(filters...)
+	if len(records) == 0 {
+		c.ajaxMsg(MSG_ERR, "该季度项目评分未发布")
 	}
 
-	typeRecordList := models.SerachScoreTypeRecordInfoIList(year, quarter, pid)
+	templateRecords := logic.SearchProjectTemplate1Records(year, quarter, pid)
 	list := make([]map[string]interface{}, 1)
 
-	for _, v := range typeRecordList {
+	for _, tr := range templateRecords {
 		row := make(map[string]interface{})
-		if v.Type.ID == tid {
-			row["id"] = v.Type.ID
-			row["name"] = v.Type.Name
+		if tr.Template.ID == tid {
+			row["id"] = tr.Template.ID
+			row["name"] = tr.Template.Name
 
-			if v.Record == nil {
+			if tr.Record == nil {
 				row["score"] = "暂无评分"
 			} else {
-				row["score"] = v.Record.TotalScore
+				row["score"] = tr.Record.TotalScore
 			}
 			list[0] = row
 		}
 	}
 
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+	c.ajaxList(MSG_OK, "成功", list)
 }
 
 func (c *RecordProjectScoreController) Score2() {
@@ -65,15 +66,15 @@ func (c *RecordProjectScoreController) Score2() {
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	t, _ := models.SearchScoreTypeInfoIByID(tid)
-	p, _ := models.SearchProjectInfoByID(pid)
+	template, _ := models.SearchProjectTemplate1ByID(tid)
+	project, _ := models.SearchProjectByID(pid)
 	row := make(map[string]interface{})
 	row["tid"] = tid
 	row["pid"] = pid
 	row["year"] = year
 	row["quarter"] = quarter
 	c.Data["Source"] = row
-	c.Data["pageTitle"] = strconv.Itoa(year) + "第" + strconv.Itoa(quarter) + "季度" + " (" + p.Name + ")" + "--" + t.Name
+	c.Data["pageTitle"] = strconv.Itoa(year) + "第" + strconv.Itoa(quarter) + "季度" + " (" + project.Name + ")" + "--" + template.Name
 	c.display()
 }
 
@@ -83,25 +84,24 @@ func (c *RecordProjectScoreController) Search2() {
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	typeRecordList := models.SerachScoreTypeRecordInfoIIList(year, quarter, tid, pid)
-	list := make([]map[string]interface{}, len(typeRecordList))
+	templateRecords := logic.SearchProjectTemplate2Records(year, quarter, tid, pid)
+	list := make([]map[string]interface{}, len(templateRecords))
 
-	for k, v := range typeRecordList {
+	for k, tr := range templateRecords {
 		row := make(map[string]interface{})
-		row["id"] = v.Type.ID
-		row["name"] = v.Type.Name
+		row["id"] = tr.Template.ID
+		row["name"] = tr.Template.Name
 
-		if v.Record == nil {
+		if tr.Record == nil {
 			row["score"] = "暂无评分"
 		} else {
-			row["score"] = v.Record.TotalScore
+			row["score"] = tr.Record.TotalScore
 		}
 
 		list[k] = row
 	}
 
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+	c.ajaxList(MSG_OK, "成功", list)
 }
 
 func (c *RecordProjectScoreController) Score3() {
@@ -110,8 +110,8 @@ func (c *RecordProjectScoreController) Score3() {
 	pid, _ := c.GetInt("pid", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
-	scoreTypeII, _ := models.SearchScoreTypeInfoIIByID(tid)
-	project, _ := models.SearchProjectInfoByID(pid)
+	template, _ := models.SearchProjectTemplate2ByID(tid)
+	project, _ := models.SearchProjectByID(pid)
 	row := make(map[string]interface{})
 	row["tid"] = tid
 	row["ttid"] = ttid
@@ -120,7 +120,7 @@ func (c *RecordProjectScoreController) Score3() {
 	row["quarter"] = quarter
 	c.Data["Source"] = row
 
-	c.Data["pageTitle"] = strconv.Itoa(year) + "第" + strconv.Itoa(quarter) + "季度" + " (" + project.Name + ")" + "--" + scoreTypeII.Name
+	c.Data["pageTitle"] = strconv.Itoa(year) + "第" + strconv.Itoa(quarter) + "季度" + " (" + project.Name + ")" + "--" + template.Name
 	c.display()
 }
 
@@ -131,27 +131,26 @@ func (c *RecordProjectScoreController) Search3() {
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	typeRecordList := models.SerachScoreTypeRecordInfoIIIList(year, quarter, tid, ttid, pid)
-	list := make([]map[string]interface{}, len(typeRecordList))
+	templateRecords := logic.SearchProjectTemplate3Records(year, quarter, tid, ttid, pid)
+	list := make([]map[string]interface{}, len(templateRecords))
 
-	for k, v := range typeRecordList {
+	for k, tr := range templateRecords {
 		row := make(map[string]interface{})
-		row["id"] = v.Type.ID
+		row["id"] = tr.Template.ID
 		row["tid"] = tid
 		row["ttid"] = ttid
-		row["name"] = v.Type.Name
-		row["max_score"] = v.Type.MaxScore
-		if v.Record == nil {
+		row["name"] = tr.Template.Name
+		row["max_score"] = tr.Template.MaxScore
+		if tr.Record == nil {
 			row["score"] = "暂无评分"
 		} else {
-			row["rid"] = v.Record.ID
-			row["score"] = v.Record.Score
+			row["rid"] = tr.Record.ID
+			row["score"] = tr.Record.Score
 		}
 		list[k] = row
 	}
 
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+	c.ajaxList(MSG_OK, "成功", list)
 }
 
 func (c *RecordProjectScoreController) Download() {
@@ -163,8 +162,8 @@ func (c *RecordProjectScoreController) Download() {
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	typeRecordIIIList := models.SerachScoreTypeRecordInfoIIIList(year, quarter, tid, ttid, pid)
-	project, _ := models.SearchProjectInfoByID(pid)
+	templateRecords := logic.SearchProjectTemplate3Records(year, quarter, tid, ttid, pid)
+	project, _ := models.SearchProjectByID(pid)
 
 	filePath := "static/excel/ProjectScore" + "_" + strconv.Itoa(year) + "_" + strconv.Itoa(quarter) + "_" + strconv.Itoa(pid) + "_" + strconv.Itoa(tid) + ".xlsx"
 	projectName := "  项目名称: " + project.Name
@@ -204,13 +203,13 @@ func (c *RecordProjectScoreController) Download() {
 
 	idex := 3
 
-	for i, tr := range typeRecordIIIList {
+	for i, tr := range templateRecords {
 		idex++
 		xlsx.SetCellValue("Sheet1", "A"+strconv.Itoa(idex), i+1)
 		xlsx.SetCellStyle("Sheet1", "A"+strconv.Itoa(idex), "A"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "B"+strconv.Itoa(idex), tr.Type.Name)
+		xlsx.SetCellValue("Sheet1", "B"+strconv.Itoa(idex), tr.Template.Name)
 		xlsx.SetCellStyle("Sheet1", "B"+strconv.Itoa(idex), "B"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "C"+strconv.Itoa(idex), tr.Type.MaxScore)
+		xlsx.SetCellValue("Sheet1", "C"+strconv.Itoa(idex), tr.Template.MaxScore)
 		xlsx.SetCellStyle("Sheet1", "C"+strconv.Itoa(idex), "C"+strconv.Itoa(idex), centerStyle)
 		if tr.Record != nil {
 			if tr.Record.Score == -1 {

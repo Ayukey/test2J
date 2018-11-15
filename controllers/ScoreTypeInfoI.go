@@ -16,21 +16,8 @@ func (c *ScoreTypeInfoIController) List() {
 }
 
 func (c *ScoreTypeInfoIController) Table() {
-	//列表
-	page, err := c.GetInt("page")
-	if err != nil {
-		page = 1
-	}
-	limit, err := c.GetInt("limit")
-	if err != nil {
-		limit = 30
-	}
-
-	c.pageSize = limit
 	//查询条件
-	filters := make([]interface{}, 0)
-	filters = append(filters, "status", 1)
-	result, count := models.SearchScoreTypeInfoIList(page, c.pageSize, filters...)
+	result := models.SearchAllProjectTemplate1s()
 	list := make([]map[string]interface{}, len(result))
 	for k, v := range result {
 		row := make(map[string]interface{})
@@ -38,7 +25,7 @@ func (c *ScoreTypeInfoIController) Table() {
 		row["name"] = v.Name
 		list[k] = row
 	}
-	c.ajaxList("成功", MSG_OK, count, list)
+	c.ajaxList(MSG_OK, "成功", list)
 }
 
 func (c *ScoreTypeInfoIController) Add() {
@@ -50,7 +37,7 @@ func (c *ScoreTypeInfoIController) Edit() {
 	c.Data["pageTitle"] = "编辑一级评分模版"
 
 	typeID, _ := c.GetInt("id", 0)
-	scoreType, err := models.SearchScoreTypeInfoIByID(typeID)
+	scoreType, err := models.SearchProjectTemplate1ByID(typeID)
 	if err != nil {
 		c.Ctx.WriteString("数据不存在")
 		return
@@ -58,7 +45,7 @@ func (c *ScoreTypeInfoIController) Edit() {
 	row := make(map[string]interface{})
 	row["id"] = scoreType.ID
 	row["name"] = scoreType.Name
-	c.Data["Source"] = row
+	c.Data["template"] = row
 	c.display()
 }
 
@@ -67,28 +54,21 @@ func (c *ScoreTypeInfoIController) AjaxSave() {
 	typeID, _ := c.GetInt("id")
 
 	if typeID == 0 {
-		scoreType := new(models.ScoreTypeInfoI)
+		scoreType := new(models.ProjectTemplate1)
 		scoreType.Name = strings.TrimSpace(c.GetString("name"))
 		scoreType.Status = 1
 
-		// 检查登录名是否已经存在
-		_, err := models.SearchScoreTypeInfoIByName(scoreType.Name)
-
-		if err == nil {
-			c.ajaxMsg("该模版名称已经存在", MSG_ERR)
+		if err := models.AddProjectTemplate1(scoreType); err != nil {
+			c.ajaxMsg(MSG_ERR, err.Error())
 		}
-
-		if _, err := models.AddScoreTypeInfoI(scoreType); err != nil {
-			c.ajaxMsg(err.Error(), MSG_ERR)
-		}
-		c.ajaxMsg("", MSG_OK)
+		c.ajaxMsg(MSG_OK, "success")
 	}
 
-	scoreType, _ := models.SearchScoreTypeInfoIByID(typeID)
+	scoreType, _ := models.SearchProjectTemplate1ByID(typeID)
 	scoreType.Name = strings.TrimSpace(c.GetString("name"))
 
 	if err := scoreType.Update(); err != nil {
-		c.ajaxMsg(err.Error(), MSG_ERR)
+		c.ajaxMsg(MSG_ERR, err.Error())
 	}
-	c.ajaxMsg("", MSG_OK)
+	c.ajaxMsg(MSG_OK, "success")
 }

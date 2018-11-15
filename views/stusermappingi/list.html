@@ -4,7 +4,8 @@
             <label class="layui-form-label">用户</label>
             <div class="layui-input-block">
                 {{range $index,$elem := .users}} {{if eq $elem.on 1}}
-                <input type="checkbox" name="{{$elem.id}}" lay-skin="primary" title="{{$elem.name}} ({{$elem.account}})" checked>
+                <input type="checkbox" name="{{$elem.id}}" lay-skin="primary" title="{{$elem.name}} ({{$elem.account}})"
+                    checked>
                 {{else}}
                 <input type="checkbox" name="{{$elem.id}}" lay-skin="primary" title="{{$elem.name}} ({{$elem.account}})">
                 {{end}} {{end}}
@@ -23,17 +24,14 @@
 </div>
 <script>
     layui.use(['table', 'form', 'element', 'jquery'], function () {
-        var table = layui.table;
-        var form = layui.form;
-        var element = layui.element;
-        var $ = layui.jquery;
+        let table = layui.table;
+        let form = layui.form;
+        let element = layui.element;
+        let $ = layui.jquery;
 
         form.on('submit(sub)', function (data) {
-            var form_data = data.field;
-            console.log(form_data)
-            $.post('{{urlfor "STUserMappingIController.AjaxSave"}}', form_data, function (out) {
-                console.log(out)
-                if (out.status == 0) {
+            $.post('{{urlfor "STUserMappingIController.AjaxSave"}}', data.field, function (resp) {
+                if (resp.code == 0) {
                     layer.msg("操作成功", {
                         icon: 1,
                         time: 500
@@ -41,7 +39,7 @@
                         window.location.href = "/STUserMappingI/List?id=" + form_data.tid
                     })
                 } else {
-                    layer.msg(out.message)
+                    layer.msg(resp.msg)
                 }
             }, "json");
             return false;

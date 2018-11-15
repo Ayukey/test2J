@@ -20,14 +20,15 @@ func (c *ReleaseDepartmentorScoreController) Release() {
 //存储资源
 func (c *ReleaseDepartmentorScoreController) AjaxSave() {
 	uid, _ := c.GetInt("user_id")
+	departmentID, _ := c.GetInt("departmentId", 0)
 	year, _ := c.GetInt("year")
 	quarter, _ := c.GetInt("quarter")
 
-	error := logic.ReleaseDepartmentorScore(year, quarter, uid)
+	error := logic.ReleaseDepartmentLeaderScoreRecord(year, quarter, uid, departmentID)
 
 	if error == nil {
-		c.ajaxMsg("", MSG_OK)
+		c.ajaxMsg(MSG_OK, "")
 	} else {
-		c.ajaxMsg(error.Error(), MSG_ERR)
+		c.ajaxMsg(MSG_ERR, error.Error())
 	}
 }

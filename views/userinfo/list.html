@@ -2,11 +2,11 @@
     <div class="layui-row" style="margin-top: 20px;">
         <div class="layui-col-xs6">
             <div class="layui-btn-group">
-                <button class="layui-btn" id="add_user">新增用户</button>
+                <button class="layui-btn" id="add_user" lay-submit="" lay-filter="AddUser">添加用户</button>
             </div>
         </div>
 
-        <div class="layui-col-xs6 search_text">
+        <!-- <div class="layui-col-xs6 search_text">
             <form class="layui-form" action="" onsubmit="javascript:return false;">
                 <div class="demoTable">
                     <div class="layui-input-inline">
@@ -18,10 +18,10 @@
                             {{end}}
                         </select>
                     </div>
-                    <button class="layui-btn" data-type="reload" id="reload">查询</button>
+                    <button class="layui-btn" data-type="reload" id="reload" lay-submit="" lay-filter="Search">查询</button>
                 </div>
             </form>
-        </div>
+        </div> -->
     </div>
 
     <table class="layui-hide" id="table_list" lay-filter="table_filter">
@@ -35,122 +35,49 @@
 </div>
 <script>
     layui.use(['table', 'form', 'element'], function () {
-        var table = layui.table;
-        var form = layui.form;
-        var element = layui.element;
+        let table = layui.table
+        let form = layui.form
+        let element = layui.element
+        let $ = layui.$
 
         //方法级渲染
-        table.render({
+        let userTable = table.render({
             elem: '#table_list',
             url: '/UserInfo/Table',
             cols: [
                 [{
-                    field: 'id',
-                    title: 'ID',
-                    align: 'center',
-                    sort: true,
-                    width: '10%'
-                }, {
                     field: 'account',
                     align: 'center',
                     title: '工号',
-                    width: '10%'
+                    sort: true,
+                    width: '20%'
                 }, {
                     field: 'name',
                     align: 'center',
                     title: '姓名',
-                    width: '15%'
+                    width: '25%'
                 }, {
                     field: 'role',
                     align: 'center',
+                    sort: true,
                     title: '角色',
-                    width: '10%'
-                }, {
-                    field: 'department',
-                    align: 'center',
-                    title: '所属部门',
-                    width: '15%'
-                }, {
-                    field: 'project',
-                    align: 'center',
-                    title: '所属项目',
-                    width: '15%'
+                    width: '25%'
                 }, {
                     fixed: 'right',
                     align: 'center',
                     title: '操作',
                     toolbar: '#bar',
-                    width: '25%'
+                    width: '30%'
                 }]
             ],
-            limit: 20,
-            limits: [20, 40, 60],
             id: 'listReload',
-            page: true,
             height: "full-130"
         });
-
-        var $ = layui.$,
-            active = {
-                reload: function () {
-                    //方法级渲染
-                    table.render({
-                        elem: '#table_list',
-                        url: '/UserInfo/Table?postion=' + $("#postion").val(),
-                        cols: [
-                            [{
-                                field: 'id',
-                                title: 'ID',
-                                align: 'center',
-                                sort: true,
-                                width: '10%'
-                            }, {
-                                field: 'account',
-                                align: 'center',
-                                title: '工号',
-                                width: '10%'
-                            }, {
-                                field: 'name',
-                                align: 'center',
-                                title: '姓名',
-                                width: '15%'
-                            }, {
-                                field: 'role',
-                                align: 'center',
-                                title: '角色',
-                                width: '10%'
-                            }, {
-                                field: 'department',
-                                align: 'center',
-                                title: '所属部门',
-                                width: '15%'
-                            }, {
-                                field: 'project',
-                                align: 'center',
-                                title: '所属项目',
-                                width: '15%'
-                            }, {
-                                fixed: 'right',
-                                align: 'center',
-                                title: '操作',
-                                toolbar: '#bar',
-                                width: '25%'
-                            }]
-                        ],
-                        id: 'listReload',
-                        height: "full-130"
-                    });
-                }
-            };
-
-        // 新增用户
-        $("#add_user").on("click", function () {
-            window.location.href = "/UserInfo/Add"
-        })
 
         //监听工具条
         table.on('tool(table_filter)', function (obj) {
             var data = obj.data;
+            console.log(obj.data)
             if (obj.event === 'edit') {
                 // 编辑用户
                 window.location.href = '/UserInfo/Edit?id=' + data.id
@@ -165,9 +92,9 @@
                     btn: ['确定', '取消']
                 }, function (index, layero) {
                     $.post('{{urlfor "UserInfoController.DeleteUser"}}', data, function (
-                        out) {
-                        console.log(out)
-                        if (out.status == 0) {
+                        resp) {
+                        console.log(resp)
+                        if (resp.code == 0) {
                             layer.msg("操作成功", {
                                 icon: 1,
                                 time: 500
@@ -175,7 +102,7 @@
                                 window.location.href = "/UserInfo/List"
                             })
                         } else {
-                            layer.msg(out.message)
+                            layer.msg(resp.msg)
                         }
                     }, "json");
                 }, function (index) {
@@ -184,9 +111,15 @@
             }
         });
 
-        $('.demoTable .layui-btn').on('click', function () {
-            var type = $(this).data('type');
-            active[type] ? active[type].call(this) : '';
+        // 添加用户
+        form.on('submit(AddUser)', function () {
+            window.location.href = "/UserInfo/Add"
         });
+
+        // 根据条件筛选用户
+        form.on('submit(Search)', function () {
+            userTable.reload()
+        });
+
     });
 </script>

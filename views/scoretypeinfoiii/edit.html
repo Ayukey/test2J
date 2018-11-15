@@ -8,8 +8,8 @@
         <div class="layui-form-item">
             <label class="layui-form-label">名称</label>
             <div class="layui-input-inline">
-                <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" placeholder="名称" class="layui-input"
-                    value="{{.Source.name}}">
+                <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" placeholder="名称"
+                    class="layui-input" value="{{.Source.name}}">
             </div>
 
             <div class="layui-form-mid layui-word-aux">*</div>
@@ -17,8 +17,8 @@
         <div class="layui-form-item">
             <label class="layui-form-label">分值</label>
             <div class="layui-input-inline">
-                <input type="text" name="score" id="score" lay-verify="required" autocomplete="off" placeholder="分值" class="layui-input"
-                    value="{{.Source.score}}">
+                <input type="text" name="score" id="score" lay-verify="required" autocomplete="off" placeholder="分值"
+                    class="layui-input" value="{{.Source.score}}">
             </div>
 
             <div class="layui-form-mid layui-word-aux">*</div>
@@ -37,20 +37,20 @@
     layui.config({
         base: "js/"
     }).use(['form', 'element', 'layer', 'jquery'], function () {
-        var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
-        var $ = layui.jquery;
+        let form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+        let $ = layui.jquery;
         form.on('submit(sub)', function (data) {
-            var form_data = data.field;
-            $.post('{{urlfor "ScoreTypeInfoIIIController.AjaxSave"}}', form_data, function (out) {
-                if (out.status == 0) {
+            $.post('{{urlfor "ScoreTypeInfoIIIController.AjaxSave"}}', data.field, function (resp) {
+                if (resp.code == 0) {
                     layer.msg("操作成功", {
-                        icon: 1
+                        icon: 1,
+                        time: 500
                     }, function () {
                         window.parent.layer.closeAll();
                         window.parent.location.reload();
                     })
                 } else {
-                    layer.msg(out.message)
+                    layer.msg(resp.msg)
                 }
             }, "json");
             return false;

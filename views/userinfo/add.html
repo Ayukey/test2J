@@ -1,24 +1,34 @@
-<div class="layui-layout layui-layout-admin" style="padding-left: 40px;margin-top: 20px;">
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;margin-top: 40px;">
     <form class="layui-form" action="" method="post">
         <div class="layui-form-item">
             <label class="layui-form-label">工号</label>
             <div class="layui-input-block " style="width: 400px">
-                <input type="text" name="account" id="account" lay-verify="required" autocomplete="off" placeholder="工号" class="layui-input"
-                    value="">
+                <input type="text" name="account" id="account" lay-verify="required" autocomplete="off" placeholder="工号"
+                    class="layui-input" value="">
             </div>
         </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label">姓名</label>
             <div class="layui-input-block " style="width: 400px">
-                <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" placeholder="姓名" class="layui-input" value="">
+                <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" placeholder="姓名"
+                    class="layui-input" value="">
             </div>
         </div>
 
         <div class="layui-form-item">
-            <label class="layui-form-label">手机</label>
+            <label class="layui-form-label">密码</label>
             <div class="layui-input-block " style="width: 400px">
-                <input type="text" name="phone" id="phone" autocomplete="off" placeholder="手机" class="layui-input" value="">
+                <input type="password" name="password" lay-verify="required" placeholder="请输入密码" autocomplete="off"
+                    value="" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">重复密码</label>
+            <div class="layui-input-block " style="width: 400px">
+                <input type="password" name="r_password" lay-verify="required" placeholder="请输入密码" autocomplete="off"
+                    value="" class="layui-input">
             </div>
         </div>
 
@@ -27,77 +37,39 @@
             <div class="layui-input-inline">
                 <select name="position_id" lay-verify="required" lay-search="" style="width: 100%">
                     <option value="">请选择职位</option>
-                    {{range $index,$elem := .postionList}}
+                    {{range $index,$elem := .positions}}
                     <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
                     {{end}}
                 </select>
             </div>
         </div>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label">密码</label>
-            <div class="layui-input-block " style="width: 400px">
-                <input type="password" name="password" lay-verify="required" placeholder="请输入密码" autocomplete="off" value="" class="layui-input">
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">重复密码</label>
-            <div class="layui-input-block " style="width: 400px">
-                <input type="r_password" name="r_password" lay-verify="required" placeholder="请输入密码" autocomplete="off" value="" class="layui-input">
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">所属部门</label>
-            <div class="layui-input-inline">
-                <select name="department_id" lay-search="" style="width: 100%">
-                    <option value="">请选择部门</option>
-                    {{range $index,$elem := .departmentList}}
-                    <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
-                    {{end}}
-                </select>
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">所属项目</label>
-            <div class="layui-input-inline">
-                <select name="project_id" lay-search="" style="width: 100%">
-                    <option value="">请选择项目</option>
-                    {{range $index,$elem := .projectList}}
-                    <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
-                    {{end}}
-                </select>
-            </div>
-        </div>
-
-
-        <div class="layui-form-item">
+        <div class="layui-form-item" style="margin-top: 30px">
             <div class="layui-input-block">
-                <button class="layui-btn" lay-submit="" lay-filter="sub">保存</button>
+                <button class="layui-btn" lay-submit="" lay-filter="save">保存</button>
                 <button type="reset" class="layui-btn layui-btn-primary">重置</button>
             </div>
         </div>
+
     </form>
 </div>
 <script>
     layui.use(['form', 'element', 'layer', 'jquery'], function () {
-        var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
-        var $ = layui.jquery;
+        let form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+        let $ = layui.jquery;
 
-        form.on('submit(sub)', function (data) {
-            var form_data = data.field;
-            $.post('{{urlfor "UserInfoController.AjaxSave"}}', form_data, function (out) {
+        form.on('submit(save)', function (data) {
+            $.post('{{urlfor "UserInfoController.AjaxSave"}}', data.field, function (out) {
                 console.log(out)
-                if (out.status == 0) {
+                if (out.code == 0) {
                     layer.msg("操作成功", {
-                        icon: 1
+                        icon: 1,
+                        time: 500
                     }, function () {
                         window.location.href = "/UserInfo/List"
                     })
                 } else {
-                    layer.msg(out.message)
+                    layer.msg(out.msg)
                 }
             }, "json");
             return false;

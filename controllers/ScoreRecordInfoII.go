@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"jg2j_server/logic"
 	"jg2j_server/models"
 )
 
@@ -10,46 +11,45 @@ type ScoreRecordInfoIIController struct {
 }
 
 func (c *ScoreRecordInfoIIController) Score() {
-	tid, _ := c.GetInt("tid", 0)
-	pid, _ := c.GetInt("pid", 0)
+	template1ID, _ := c.GetInt("template1_id", 0)
+	projectID, _ := c.GetInt("project_id", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
-	scoreTypeI, _ := models.SearchScoreTypeInfoIByID(tid)
-	project, _ := models.SearchProjectInfoByID(pid)
+	template1, _ := models.SearchProjectTemplate1ByID(template1ID)
+	project, _ := models.SearchProjectByID(projectID)
 	row := make(map[string]interface{})
-	row["tid"] = tid
-	row["pid"] = pid
+	row["template1_id"] = template1ID
+	row["project_id"] = projectID
 	row["year"] = year
 	row["quarter"] = quarter
 	c.Data["Source"] = row
-	c.Data["pageTitle"] = scoreTypeI.Name + " (" + project.Name + ")"
+	c.Data["pageTitle"] = template1.Name + " (" + project.Name + ")"
 	c.display()
 }
 
 func (c *ScoreRecordInfoIIController) Search() {
-	tid, _ := c.GetInt("tid", 0)
-	pid, _ := c.GetInt("pid", 0)
+	template1ID, _ := c.GetInt("template1_id", 0)
+	projectID, _ := c.GetInt("project_id", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	typeRecordList := models.SerachScoreTypeRecordInfoIIList(year, quarter, tid, pid)
-	list := make([]map[string]interface{}, len(typeRecordList))
+	template2Records := logic.SearchProjectTemplate2Records(year, quarter, template1ID, projectID)
+	list := make([]map[string]interface{}, len(template2Records))
 
-	for k, v := range typeRecordList {
+	for index, template2Record := range template2Records {
 		row := make(map[string]interface{})
-		row["id"] = v.Type.ID
-		row["name"] = v.Type.Name
+		row["template2_id"] = template2Record.Template.ID
+		row["template2_name"] = template2Record.Template.Name
 
-		if v.Record == nil {
-			row["score"] = "暂无评分"
+		if template2Record.Record == nil {
+			row["record2_score"] = "暂无评分"
 		} else {
-			row["rid"] = v.Record.ID
-			row["score"] = v.Record.TotalScore
+			row["record2_id"] = template2Record.Record.ID
+			row["record2_score"] = template2Record.Record.TotalScore
 		}
 
-		list[k] = row
+		list[index] = row
 	}
 
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+	c.ajaxList(MSG_OK, "成功", list)
 }

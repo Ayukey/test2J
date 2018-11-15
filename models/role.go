@@ -15,14 +15,10 @@ type Role struct {
 	UpdateTime int64
 }
 
-func (a *Role) TableName() string {
-	return TableName("SysRole")
-}
-
 func RoleGetList(page, pageSize int, filters ...interface{}) ([]*Role, int64) {
 	offset := (page - 1) * pageSize
 	list := make([]*Role, 0)
-	query := orm.NewOrm().QueryTable(TableName("SysRole"))
+	query := orm.NewOrm().QueryTable(TableName("role"))
 	if len(filters) > 0 {
 		l := len(filters)
 		for k := 0; k < l; k += 2 {
@@ -44,7 +40,7 @@ func RoleAdd(role *Role) (int64, error) {
 
 func RoleGetById(id int) (*Role, error) {
 	r := new(Role)
-	err := orm.NewOrm().QueryTable(TableName("SysRole")).Filter("id", id).One(r)
+	err := orm.NewOrm().QueryTable(TableName("role")).Filter("id", id).One(r)
 	if err != nil {
 		return nil, err
 	}

@@ -20,38 +20,40 @@ func (c *RecordDepartmentorScoreController) Score() {
 
 func (c *RecordDepartmentorScoreController) Search() {
 	uid, _ := c.GetInt("uid", 0)
+	departmentId, _ := c.GetInt("departmentId", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	filters := make([]interface{}, 0)
-	filters = append(filters, "year", year)
-	filters = append(filters, "quarter", quarter)
-	filters = append(filters, "user_id", uid)
-	recordList := models.SearchDepartmentorSumPubInfoByOrder(filters...)
-	if len(recordList) == 0 {
-		c.ajaxMsg("该季度部门负责人评分未发布", MSG_ERR)
+	filter1 := models.DBFilter{Key: "year", Value: year}                 // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter}           // 季度
+	filter3 := models.DBFilter{Key: "uid", Value: uid}                   // 用户ID
+	filter4 := models.DBFilter{Key: "departmen_id", Value: departmentId} // 用户ID
+	filters := []models.DBFilter{filter1, filter2, filter3, filter4}
+
+	records := models.SearchDepartmentLeaderReleaseRecordsByOrder(filters...)
+	if len(records) == 0 {
+		c.ajaxMsg(MSG_ERR, "该季度部门负责人评分未发布")
 	}
 
-	list := make([]map[string]interface{}, len(recordList))
+	list := make([]map[string]interface{}, len(records))
 
-	for i, v := range recordList {
+	for i, r := range records {
 		row := make(map[string]interface{})
 		row["id"] = i + 1
 
-		user, _ := models.SearchUserInfoByID(v.UserID)
-		if user != nil {
+		user, err := models.SearchUserByID(r.UID)
+		if err == nil {
 			row["name"] = user.Name
 		}
-		department, _ := models.SearchDepartmentInfoByID(v.DepartmentID)
-		if department != nil {
-			row["pname"] = department.Name
+		department, err := models.SearchDepartmentByID(r.DepartmentID)
+		if err == nil {
+			row["dname"] = department.Name
 		}
-		row["score"] = v.Score
+		row["score"] = r.Score
 		list[i] = row
 	}
 
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+	c.ajaxList(MSG_OK, "成功", list)
 }
 
 func (c *RecordDepartmentorScoreController) ScoreDetails() {
@@ -70,20 +72,20 @@ func (c *RecordDepartmentorScoreController) ScoreDetails() {
 
 func (c *RecordDepartmentorScoreController) SearchDetails() {
 	uid, _ := c.GetInt("uid", 0)
+	departmentId, _ := c.GetInt("departmentId", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	typeRecords := logic.SearchDepartmentorScoreTypeRecordInfosBySumData(year, quarter, uid)
-	list := make([]map[string]interface{}, len(typeRecords))
-	for i, tr := range typeRecords {
+	templateRecords := logic.SearchDepartmentLeaderTemplateAverageRecords(year, quarter, uid, departmentId)
+	list := make([]map[string]interface{}, len(templateRecords))
+	for i, tr := range templateRecords {
 		info := make(map[string]interface{})
-		info["ID"] = tr.Type.ID
-		info["Name"] = tr.Type.Name
-		info["ScoreLimit"] = tr.Type.ScoreLimit
+		info["ID"] = tr.Template.ID
+		info["Name"] = tr.Template.Name
+		info["ScoreLimit"] = tr.Template.ScoreLimit
 		info["Score"] = strconv.FormatFloat(tr.Score, 'f', 2, 64)
 		list[i] = info
 	}
 
-	count := int64(len(list))
-	c.ajaxList("成功", MSG_OK, count, list)
+	c.ajaxList(MSG_OK, "成功", list)
 }
