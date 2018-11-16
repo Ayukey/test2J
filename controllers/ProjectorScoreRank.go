@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"jg2j_server/libs"
 	"jg2j_server/logic"
 	"jg2j_server/models"
 	"strconv"
@@ -43,7 +44,7 @@ func (c *ProjectorScoreRankController) Search() {
 		col := make(map[string]interface{})
 		col["field"] = "score" + strconv.Itoa(t.ID)
 		col["align"] = "center"
-		col["title"] = t.Name + "(" + strconv.FormatFloat(t.ScoreLimit, 'f', 0, 64) + "分)"
+		col["title"] = t.Name + "(" + libs.Float64ToStringWithNoZero(t.ScoreLimit) + "分)"
 		col["width"] = strconv.Itoa(eachWidth) + "%"
 		colList = append(colList, col)
 	}
@@ -92,9 +93,9 @@ func (c *ProjectorScoreRankController) Table() {
 
 		for _, templateRecord := range templateRecords {
 			key := "score" + strconv.Itoa(templateRecord.Template.ID)
-			col[key] = strconv.FormatFloat(templateRecord.Score, 'f', 2, 64)
+			col[key] = libs.Float64ToStringWithNoZero(templateRecord.Score)
 		}
-		col["totalscore"] = strconv.FormatFloat(r.Score, 'f', 2, 64)
+		col["totalscore"] = libs.Float64ToStringWithNoZero(r.Score)
 		list[i] = col
 	}
 
@@ -105,8 +106,9 @@ func (c *ProjectorScoreRankController) Download() {
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	filePath := "static/excel/ProjectorScore" + "_" + strconv.Itoa(year) + "_" + strconv.Itoa(quarter) + ".xlsx"
 	title := "项目负责人" + strconv.Itoa(year) + "第" + strconv.Itoa(quarter) + "季度互评汇总"
+
+	filePath := "static/excel/" + title + ".xlsx"
 
 	templates := models.SearchAllProjectLeaderTemplates()
 
@@ -114,11 +116,10 @@ func (c *ProjectorScoreRankController) Download() {
 	centerStyle, _ := xlsx.NewStyle(`{"alignment":{"horizontal":"center"}}`)
 
 	// 标题
-
 	colList := make([]string, 0)
 	colList = append(colList, "排名", "姓名")
 	for _, t := range templates {
-		colList = append(colList, t.Name+"("+strconv.FormatFloat(t.ScoreLimit, 'f', 0, 64)+"分)")
+		colList = append(colList, t.Name+"("+libs.Float64ToStringWithNoZero(t.ScoreLimit)+"分)")
 	}
 	colList = append(colList, "总分")
 
@@ -172,17 +173,17 @@ func (c *ProjectorScoreRankController) Download() {
 		xlsx.SetCellStyle("Sheet1", "A"+strconv.Itoa(idex), "A"+strconv.Itoa(idex), centerStyle)
 		xlsx.SetCellValue("Sheet1", "B"+strconv.Itoa(idex), user.Name+" ("+project.Name+")")
 		xlsx.SetCellStyle("Sheet1", "B"+strconv.Itoa(idex), "B"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "C"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[0].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "C"+strconv.Itoa(idex), libs.Float64ToStringWithNoZero(templateRecords[0].Score))
 		xlsx.SetCellStyle("Sheet1", "C"+strconv.Itoa(idex), "C"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "D"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[1].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "D"+strconv.Itoa(idex), libs.Float64ToStringWithNoZero(templateRecords[1].Score))
 		xlsx.SetCellStyle("Sheet1", "D"+strconv.Itoa(idex), "D"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "E"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[2].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "E"+strconv.Itoa(idex), libs.Float64ToStringWithNoZero(templateRecords[2].Score))
 		xlsx.SetCellStyle("Sheet1", "E"+strconv.Itoa(idex), "E"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "F"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[3].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "F"+strconv.Itoa(idex), libs.Float64ToStringWithNoZero(templateRecords[3].Score))
 		xlsx.SetCellStyle("Sheet1", "F"+strconv.Itoa(idex), "F"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "G"+strconv.Itoa(idex), strconv.FormatFloat(templateRecords[4].Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "G"+strconv.Itoa(idex), libs.Float64ToStringWithNoZero(templateRecords[4].Score))
 		xlsx.SetCellStyle("Sheet1", "G"+strconv.Itoa(idex), "G"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "H"+strconv.Itoa(idex), strconv.FormatFloat(r.Score, 'f', 2, 64))
+		xlsx.SetCellValue("Sheet1", "H"+strconv.Itoa(idex), libs.Float64ToStringWithNoZero(r.Score))
 		xlsx.SetCellStyle("Sheet1", "H"+strconv.Itoa(idex), "H"+strconv.Itoa(idex), centerStyle)
 	}
 
@@ -190,5 +191,7 @@ func (c *ProjectorScoreRankController) Download() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	c.Redirect("https://scapi.sh2j.com/"+filePath, 302)
+	// c.Redirect("https://scapi.sh2j.com/"+filePath, 302)
+	// https://scapi.sh2j.com/
+	c.Redirect("http://localhost:8080/"+filePath, 302)
 }

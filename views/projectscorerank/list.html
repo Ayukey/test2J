@@ -20,17 +20,15 @@
                     </div>
 
                     <div class="layui-inline" style="width: 20%;text-align: center;">
-                        <select name="tid" id="tid" lay-verify="required" lay-search="">
+                        <select name="t1id" id="t1id" lay-verify="required" lay-search="">
                             <option value="">请选择分类</option>
-                            [[range $index,$elem := .types]]
+                            [[range $index,$elem := .templates]]
                             <option value="[[$elem.ID]]"> [[$elem.Name]]</option>
                             [[end]]
                         </select>
                     </div>
 
                     <button class="layui-btn" data-type="reload" id="reload">查询</button>
-
-                    <button class="layui-btn" data-type="download" id="download">下载</button>
                 </div>
             </form>
         </div>
@@ -46,10 +44,10 @@
 </div>
 <script>
     layui.use(['table', 'form', 'element', 'laydate', 'jquery'], function () {
-        var table = layui.table;
-        var form = layui.form;
-        var element = layui.element;
-        var laydate = layui.laydate;
+        let table = layui.table;
+        let form = layui.form;
+        let element = layui.element;
+        let laydate = layui.laydate;
 
         //自定义格式
         laydate.render({
@@ -58,12 +56,12 @@
             format: 'yyyy'
         });
 
-        var $ = layui.$,
+        let $ = layui.$,
             active = {
                 reload: function () {
                     var form_data = new Object;
                     form_data.year = $("#year").val();
-                    form_data.tid = $("#tid").val();
+                    form_data.t1id = $("#t1id").val();
                     form_data.quarter = $("#quarter").val();
 
                     $.post('[[urlfor "ProjectScoreRankController.Search"]]', form_data, function (out) {
@@ -72,14 +70,11 @@
                             //方法级渲染
                             table.render({
                                 elem: '#table_list',
-                                url: '/ProjectScoreRank/Table?year=' + $("#year").val() +
-                                    '&quarter=' + $("#quarter").val() + '&tid=' + $("#tid")
-                                    .val(),
+                                url: `/ProjectScoreRank/Table?year=${$("#year").val()}&quarter=${$("#quarter").val()}&t1id=${$("#t1id").val()}`,
                                 cols: [
                                     out.col
                                 ],
                                 id: 'listReload',
-                                page: true,
                                 height: "full-130"
                             });
                         } else {

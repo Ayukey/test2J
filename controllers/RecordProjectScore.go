@@ -1,9 +1,15 @@
 package controllers
 
 import (
+	"archive/zip"
 	"fmt"
+	"io"
+	"jg2j_server/libs"
 	"jg2j_server/logic"
 	"jg2j_server/models"
+	"log"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
@@ -148,84 +154,253 @@ func (c *RecordProjectScoreController) Search3() {
 	c.ajaxList(MSG_OK, "成功", list)
 }
 
-func (c *RecordProjectScoreController) Download() {
-	tid, _ := c.GetInt("tid", 0)
-	tname := c.GetString("tname", "")
-	tscore, _ := c.GetFloat("tscore", 0)
-	ttid, _ := c.GetInt("ttid", 0)
+func (c *RecordProjectScoreController) Download1() {
 	pid, _ := c.GetInt("pid", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	templateRecords := logic.SearchProjectTemplate3Records(year, quarter, tid, ttid, pid)
+	filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
+	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
+	filter3 := models.DBFilter{Key: "pid", Value: pid}         // 项目ID
+	filters := []models.DBFilter{filter1, filter2, filter3}
+
+	records := models.SearchProjectReleaseRecordsByFilters(filters...)
+	if len(records) == 0 {
+		c.ajaxMsg(MSG_ERR, "该季度项目评分未发布")
+	}
+
 	project, _ := models.SearchProjectByID(pid)
 
-	filePath := "static/excel/ProjectScore" + "_" + strconv.Itoa(year) + "_" + strconv.Itoa(quarter) + "_" + strconv.Itoa(pid) + "_" + strconv.Itoa(tid) + ".xlsx"
-	projectName := "  项目名称: " + project.Name
-	yearAndQuarter := strconv.Itoa(year) + "第" + strconv.Itoa(quarter) + "季度  "
+	template1Records := logic.SearchProjectTemplate1Records(year, quarter, pid)
+
+	dirName := strconv.Itoa(year) + "年-第" + strconv.Itoa(quarter) + "季度" + "_" + project.Name
+
+	path := "static/excel/" + dirName + "/" + dirName
+
+	dirPath := "static/excel/" + dirName
+
+	zipPath := "static/excel/" + dirName + ".zip"
+
+	os.Mkdir(dirPath, os.ModePerm)
+	os.Mkdir(path, os.ModePerm)
+
+	for _, template1Record := range template1Records {
+		filePath := path + "/" + template1Record.Template.Name + ".xlsx"
+
+		template2Records := logic.SearchProjectTemplate2Records(year, quarter, template1Record.Template.ID, pid)
+
+		xlsx := excelize.NewFile()
+		xlsx.DeleteSheet("Sheet1")
+
+		leftStyle, _ := xlsx.NewStyle(`{"alignment":{"horizontal":"left"}}`)
+		centerStyle, _ := xlsx.NewStyle(`{"alignment":{"horizontal":"center"}}`)
+		rightStyle, _ := xlsx.NewStyle(`{"alignment":{"horizontal":"right"}}`)
+
+		for _, template2Record := range template2Records {
+			template2Name := template2Record.Template.Name
+
+			xlsx.NewSheet(template2Name)
+			xlsx.SetColWidth(template2Name, "A", "A", 20)
+			xlsx.SetColWidth(template2Name, "B", "B", 80)
+			xlsx.SetColWidth(template2Name, "C", "C", 20)
+			xlsx.SetColWidth(template2Name, "D", "D", 20)
+			template3Records := logic.SearchProjectTemplate3Records(year, quarter, template1Record.Template.ID, template2Record.Template.ID, pid)
+
+			xlsx.MergeCell(template2Name, "A1", "D1")
+			xlsx.SetCellStyle(template2Name, "A1", "A1", centerStyle)
+			xlsx.SetCellValue(template2Name, "A1", template2Name)
+
+			xlsx.MergeCell(template2Name, "A2", "B2")
+			xlsx.SetCellStyle(template2Name, "A2", "A2", leftStyle)
+			xlsx.MergeCell(template2Name, "C2", "D2")
+			xlsx.SetCellStyle(template2Name, "C2", "C2", rightStyle)
+			xlsx.SetCellValue(template2Name, "A2", project.Name)
+			xlsx.SetCellValue(template2Name, "C2", strconv.Itoa(year)+"年-第"+strconv.Itoa(quarter)+"季度")
+
+			xlsx.SetCellValue(template2Name, "A3", "序号")
+			xlsx.SetCellValue(template2Name, "B3", "检查要素")
+			xlsx.SetCellValue(template2Name, "C3", "分值")
+			xlsx.SetCellValue(template2Name, "D3", "得分")
+			xlsx.SetCellStyle(template2Name, "A3", "A3", centerStyle)
+			xlsx.SetCellStyle(template2Name, "B3", "B3", centerStyle)
+			xlsx.SetCellStyle(template2Name, "C3", "C3", centerStyle)
+			xlsx.SetCellStyle(template2Name, "D3", "D3", centerStyle)
+
+			for i, template3Record := range template3Records {
+				template3 := template3Record.Template
+				record3 := template3Record.Record
+				index := i + 4
+				A := "A" + strconv.Itoa(index)
+				B := "B" + strconv.Itoa(index)
+				C := "C" + strconv.Itoa(index)
+				D := "D" + strconv.Itoa(index)
+				xlsx.SetCellStyle(template2Name, A, A, centerStyle)
+				xlsx.SetCellStyle(template2Name, B, B, leftStyle)
+				xlsx.SetCellStyle(template2Name, C, C, centerStyle)
+				xlsx.SetCellStyle(template2Name, D, D, centerStyle)
+				xlsx.SetCellValue(template2Name, A, i+1)
+				xlsx.SetCellValue(template2Name, B, template3.Name)
+				xlsx.SetCellValue(template2Name, C, template3.MaxScore)
+				xlsx.SetCellValue(template2Name, D, record3.Score)
+			}
+
+			totalIndex := len(template3Records) + 4
+			remarkIndex := len(template3Records) + 5
+			xlsx.SetCellStyle(template2Name, "A"+strconv.Itoa(totalIndex), "A"+strconv.Itoa(totalIndex), centerStyle)
+			xlsx.SetCellValue(template2Name, "A"+strconv.Itoa(totalIndex), "总分")
+			xlsx.MergeCell(template2Name, "B"+strconv.Itoa(totalIndex), "D"+strconv.Itoa(totalIndex))
+			xlsx.SetCellStyle(template2Name, "B"+strconv.Itoa(totalIndex), "B"+strconv.Itoa(totalIndex), rightStyle)
+			xlsx.SetCellValue(template2Name, "B"+strconv.Itoa(totalIndex), libs.Float64ToStringWithNoZero(template2Record.Record.TotalScore))
+
+			xlsx.SetCellStyle(template2Name, "A"+strconv.Itoa(remarkIndex), "A"+strconv.Itoa(remarkIndex), centerStyle)
+			xlsx.SetCellValue(template2Name, "A"+strconv.Itoa(remarkIndex), "总评")
+			xlsx.MergeCell(template2Name, "B"+strconv.Itoa(remarkIndex), "D"+strconv.Itoa(remarkIndex))
+			xlsx.SetCellStyle(template2Name, "B"+strconv.Itoa(remarkIndex), "B"+strconv.Itoa(remarkIndex), rightStyle)
+			xlsx.SetCellValue(template2Name, "B"+strconv.Itoa(remarkIndex), template2Record.Record.Remark)
+
+		}
+
+		err := xlsx.SaveAs(filePath)
+		if err != nil {
+			fmt.Println(err)
+			c.ajaxMsg(MSG_ERR, "该季度项目评分未发布")
+		}
+	}
+
+	zipDir(dirPath, zipPath)
+	// https://scapi.sh2j.com/
+	c.Redirect("http://localhost:8080/"+zipPath, 302)
+}
+
+func (c *RecordProjectScoreController) Download2() {
+	t1id, _ := c.GetInt("t1id", 0)
+	t2id, _ := c.GetInt("t2id", 0)
+	pid, _ := c.GetInt("pid", 0)
+	year, _ := c.GetInt("year", 0)
+	quarter, _ := c.GetInt("quarter", 0)
+
+	template2Records := logic.SearchProjectTemplate2Records(year, quarter, t1id, pid)
+
+	var template2Record logic.ProjectTemplate2Record
+	for _, tr := range template2Records {
+		if tr.Template.ID == t2id {
+			template2Record = *tr
+			break
+		}
+	}
+
+	template2Name := template2Record.Template.Name
+
+	template3Records := logic.SearchProjectTemplate3Records(year, quarter, t1id, t2id, pid)
+	project, _ := models.SearchProjectByID(pid)
+
+	dirName := strconv.Itoa(year) + "年-第" + strconv.Itoa(quarter) + "季度" + "_" + project.Name
+
+	filePath := "static/excel/" + dirName + "-" + template2Name + ".xlsx"
 
 	xlsx := excelize.NewFile()
+	xlsx.DeleteSheet("Sheet1")
 
 	leftStyle, _ := xlsx.NewStyle(`{"alignment":{"horizontal":"left"}}`)
 	centerStyle, _ := xlsx.NewStyle(`{"alignment":{"horizontal":"center"}}`)
 	rightStyle, _ := xlsx.NewStyle(`{"alignment":{"horizontal":"right"}}`)
 
-	xlsx.SetColWidth("Sheet1", "A", "A", 12)
-	xlsx.SetColWidth("Sheet1", "B", "B", 60)
-	xlsx.SetColWidth("Sheet1", "C", "C", 12)
-	xlsx.SetColWidth("Sheet1", "D", "D", 12)
+	xlsx.NewSheet(template2Name)
+	xlsx.SetColWidth(template2Name, "A", "A", 20)
+	xlsx.SetColWidth(template2Name, "B", "B", 80)
+	xlsx.SetColWidth(template2Name, "C", "C", 20)
+	xlsx.SetColWidth(template2Name, "D", "D", 20)
 
-	xlsx.MergeCell("Sheet1", "A1", "D1")
-	xlsx.SetCellValue("Sheet1", "A1", tname)
-	xlsx.SetCellStyle("Sheet1", "A1", "A1", centerStyle)
+	xlsx.MergeCell(template2Name, "A1", "D1")
+	xlsx.SetCellStyle(template2Name, "A1", "A1", centerStyle)
+	xlsx.SetCellValue(template2Name, "A1", template2Name)
 
-	xlsx.MergeCell("Sheet1", "A2", "B2")
-	xlsx.SetCellValue("Sheet1", "A2", projectName)
-	xlsx.SetCellStyle("Sheet1", "A2", "A2", leftStyle)
+	xlsx.MergeCell(template2Name, "A2", "B2")
+	xlsx.SetCellStyle(template2Name, "A2", "A2", leftStyle)
+	xlsx.MergeCell(template2Name, "C2", "D2")
+	xlsx.SetCellStyle(template2Name, "C2", "C2", rightStyle)
+	xlsx.SetCellValue(template2Name, "A2", project.Name)
+	xlsx.SetCellValue(template2Name, "C2", strconv.Itoa(year)+"年-第"+strconv.Itoa(quarter)+"季度")
 
-	xlsx.MergeCell("Sheet1", "C2", "D2")
-	xlsx.SetCellValue("Sheet1", "C2", yearAndQuarter)
-	xlsx.SetCellStyle("Sheet1", "C2", "C2", rightStyle)
+	xlsx.SetCellValue(template2Name, "A3", "序号")
+	xlsx.SetCellValue(template2Name, "B3", "检查要素")
+	xlsx.SetCellValue(template2Name, "C3", "分值")
+	xlsx.SetCellValue(template2Name, "D3", "得分")
+	xlsx.SetCellStyle(template2Name, "A3", "A3", centerStyle)
+	xlsx.SetCellStyle(template2Name, "B3", "B3", centerStyle)
+	xlsx.SetCellStyle(template2Name, "C3", "C3", centerStyle)
+	xlsx.SetCellStyle(template2Name, "D3", "D3", centerStyle)
 
-	xlsx.SetCellValue("Sheet1", "A3", "序号")
-	xlsx.SetCellValue("Sheet1", "B3", "检查要素")
-	xlsx.SetCellValue("Sheet1", "C3", "分值")
-	xlsx.SetCellValue("Sheet1", "D3", "得分")
-	xlsx.SetCellStyle("Sheet1", "A3", "A3", centerStyle)
-	xlsx.SetCellStyle("Sheet1", "B3", "B3", centerStyle)
-	xlsx.SetCellStyle("Sheet1", "C3", "C3", centerStyle)
-	xlsx.SetCellStyle("Sheet1", "D3", "D3", centerStyle)
-
-	idex := 3
-
-	for i, tr := range templateRecords {
-		idex++
-		xlsx.SetCellValue("Sheet1", "A"+strconv.Itoa(idex), i+1)
-		xlsx.SetCellStyle("Sheet1", "A"+strconv.Itoa(idex), "A"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "B"+strconv.Itoa(idex), tr.Template.Name)
-		xlsx.SetCellStyle("Sheet1", "B"+strconv.Itoa(idex), "B"+strconv.Itoa(idex), centerStyle)
-		xlsx.SetCellValue("Sheet1", "C"+strconv.Itoa(idex), tr.Template.MaxScore)
-		xlsx.SetCellStyle("Sheet1", "C"+strconv.Itoa(idex), "C"+strconv.Itoa(idex), centerStyle)
-		if tr.Record != nil {
-			if tr.Record.Score == -1 {
-				xlsx.SetCellValue("Sheet1", "D"+strconv.Itoa(idex), "/")
-			} else {
-				xlsx.SetCellValue("Sheet1", "D"+strconv.Itoa(idex), tr.Record.Score)
-			}
-		} else {
-			xlsx.SetCellValue("Sheet1", "D"+strconv.Itoa(idex), "")
-		}
-		xlsx.SetCellStyle("Sheet1", "D"+strconv.Itoa(idex), "D"+strconv.Itoa(idex), centerStyle)
+	for i, template3Record := range template3Records {
+		template3 := template3Record.Template
+		record3 := template3Record.Record
+		index := i + 4
+		A := "A" + strconv.Itoa(index)
+		B := "B" + strconv.Itoa(index)
+		C := "C" + strconv.Itoa(index)
+		D := "D" + strconv.Itoa(index)
+		xlsx.SetCellStyle(template2Name, A, A, centerStyle)
+		xlsx.SetCellStyle(template2Name, B, B, leftStyle)
+		xlsx.SetCellStyle(template2Name, C, C, centerStyle)
+		xlsx.SetCellStyle(template2Name, D, D, centerStyle)
+		xlsx.SetCellValue(template2Name, A, i+1)
+		xlsx.SetCellValue(template2Name, B, template3.Name)
+		xlsx.SetCellValue(template2Name, C, template3.MaxScore)
+		xlsx.SetCellValue(template2Name, D, record3.Score)
 	}
-	idex++
 
-	xlsx.MergeCell("Sheet1", "A"+strconv.Itoa(idex), "D"+strconv.Itoa(idex))
-	xlsx.SetCellValue("Sheet1", "A"+strconv.Itoa(idex), "总分: "+strconv.FormatFloat(tscore, 'f', 2, 64))
-	xlsx.SetCellStyle("Sheet1", "A"+strconv.Itoa(idex), "A"+strconv.Itoa(idex), rightStyle)
+	totalIndex := len(template3Records) + 4
+	remarkIndex := len(template3Records) + 5
+	xlsx.SetCellStyle(template2Name, "A"+strconv.Itoa(totalIndex), "A"+strconv.Itoa(totalIndex), centerStyle)
+	xlsx.SetCellValue(template2Name, "A"+strconv.Itoa(totalIndex), "总分")
+	xlsx.MergeCell(template2Name, "B"+strconv.Itoa(totalIndex), "D"+strconv.Itoa(totalIndex))
+	xlsx.SetCellStyle(template2Name, "B"+strconv.Itoa(totalIndex), "B"+strconv.Itoa(totalIndex), rightStyle)
+	xlsx.SetCellValue(template2Name, "B"+strconv.Itoa(totalIndex), libs.Float64ToStringWithNoZero(template2Record.Record.TotalScore))
+
+	xlsx.SetCellStyle(template2Name, "A"+strconv.Itoa(remarkIndex), "A"+strconv.Itoa(remarkIndex), centerStyle)
+	xlsx.SetCellValue(template2Name, "A"+strconv.Itoa(remarkIndex), "总评")
+	xlsx.MergeCell(template2Name, "B"+strconv.Itoa(remarkIndex), "D"+strconv.Itoa(remarkIndex))
+	xlsx.SetCellStyle(template2Name, "B"+strconv.Itoa(remarkIndex), "B"+strconv.Itoa(remarkIndex), rightStyle)
+	xlsx.SetCellValue(template2Name, "B"+strconv.Itoa(remarkIndex), template2Record.Record.Remark)
 
 	err := xlsx.SaveAs(filePath)
 	if err != nil {
 		fmt.Println(err)
 	}
-	c.Redirect("https://scapi.sh2j.com/"+filePath, 302)
+	// https://scapi.sh2j.com/
+	c.Redirect("http://localhost:8080/"+filePath, 302)
+}
+
+func zipDir(dir, zipFile string) {
+
+	fz, err := os.Create(zipFile)
+	if err != nil {
+		log.Fatalf("Create zip file failed: %s\n", err.Error())
+	}
+	defer fz.Close()
+
+	w := zip.NewWriter(fz)
+	defer w.Close()
+
+	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			fDest, err := w.Create(path[len(dir)+1:])
+			if err != nil {
+				log.Printf("Create failed: %s\n", err.Error())
+				return nil
+			}
+			fSrc, err := os.Open(path)
+			if err != nil {
+				log.Printf("Open failed: %s\n", err.Error())
+				return nil
+			}
+			defer fSrc.Close()
+			_, err = io.Copy(fDest, fSrc)
+			if err != nil {
+				log.Printf("Copy failed: %s\n", err.Error())
+				return nil
+			}
+		}
+		return nil
+	})
 }

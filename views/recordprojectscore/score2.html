@@ -62,10 +62,8 @@
                 window.location.href =
                     `/RecordProjectScore/Score3?year=${$("#year").val()}&quarter=${$("#quarter").val()}&pid=${$("#pid").val()}&t1id=${$("#t1id").val()}&t2id=${data.t2id}`
             } else if (obj.event === 'download') {
-                window.location.href = '/RecordProjectScore/Download?tid=' + data.id + '&pid=' + $(
-                        "#pid").val() + '&year=' + $("#year").val() + '&quarter=' + $(
-                        "#quarter").val() + '&ttid=' + $("#tid").val() + '&tscore=' + data.score +
-                    '&tname=' + data.name
+                window.location.href =
+                    `/RecordProjectScore/Download2?year=${$("#year").val()}&quarter=${$("#quarter").val()}&pid=${$("#pid").val()}&t1id=${$("#t1id").val()}&t2id=${data.t2id}`
             }
         });
     });

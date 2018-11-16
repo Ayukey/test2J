@@ -30,7 +30,7 @@
 
                     <button class="layui-btn" data-type="reload" id="reload">查询</button>
 
-                    <button class="layui-btn" data-type="download" id="download">下载</button>
+                    <button class="layui-btn" data-type="download" id="download" lay-submit="" lay-filter="download">下载</button>
                 </div>
             </form>
         </div>
@@ -112,6 +112,12 @@
         $('.demoTable .layui-btn').on('click', function () {
             var type = $(this).data('type');
             active[type] ? active[type].call(this) : '';
+        });
+
+        // 根据条件筛选用户
+        form.on('submit(download)', function () {
+            window.location.href =
+                `/RecordProjectScore/Download1?year=${$("#year").val()}&quarter=${$("#quarter").val()}&pid=${$("#project").val()}`
         });
     });
 </script>
