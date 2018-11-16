@@ -70,9 +70,7 @@ func (c *ProjectInfoController) AjaxSave() {
 	if id == 0 {
 		project := new(models.Project)
 		project.Name = name
-		project.Active = 1
 		project.Leader = leader
-		project.LeaderActive = 1
 		project.Status = 1
 
 		if err := models.AddProject(project); err != nil {

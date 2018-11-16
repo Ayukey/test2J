@@ -4,7 +4,7 @@
             <label class="layui-form-label">名称</label>
             <div class="layui-input-block " style="width: 300px">
                 <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" placeholder="名称"
-                    class="layui-input" value="{{.project.name}}">
+                    class="layui-input" value="[[.project.name]]">
             </div>
         </div>
 
@@ -14,16 +14,16 @@
             <div class="layui-input-inline">
                 <select name="leader" lay-verify="required" lay-search="" style="width: 100%">
                     <option value="">请选择负责人</option>
-                    {{range $index,$elem := .leaders}} {{if eq $elem.ID $.project.leader}}
-                    <option value="{{$elem.ID}}" selected> {{$elem.Name}} ({{$elem.Account}})</option>
-                    {{else}}
-                    <option value="{{$elem.ID}}"> {{$elem.Name}} ({{$elem.Account}})</option>
-                    {{end}} {{end}}
+                    [[range $index,$elem := .leaders]] [[if eq $elem.ID $.project.leader]]
+                    <option value="[[$elem.ID]]" selected> [[$elem.Name]] ([[$elem.Account]])</option>
+                    [[else]]
+                    <option value="[[$elem.ID]]"> [[$elem.Name]] ([[$elem.Account]])</option>
+                    [[end]] [[end]]
                 </select>
             </div>
         </div>
 
-        <input type="hidden" id="id" name="id" value="{{.project.id}}">
+        <input type="hidden" id="id" name="id" value="[[.project.id]]">
 
         <div class="layui-form-item">
             <div class="layui-input-block">
@@ -39,7 +39,7 @@
         let $ = layui.jquery;
 
         form.on('submit(sub)', function (data) {
-            $.post('{{urlfor "ProjectInfoController.AjaxSave"}}', data.field, function (resp) {
+            $.post('[[urlfor "ProjectInfoController.AjaxSave"]]', data.field, function (resp) {
                 console.log(resp)
                 if (resp.code == 0) {
                     layer.msg("操作成功", {

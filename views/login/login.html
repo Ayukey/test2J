@@ -6,7 +6,7 @@
     <link rel="shortcut icon" href="/static/img/favicon.ico">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{{.siteName}} 登录</title>
+    <title>[[.siteName]] 登录</title>
     <link rel="stylesheet" href="/static/layui/css/layui.css?t=1504439386550" media="all">
     <link rel="stylesheet" href="/static/css/login.css" media="all">
 </head>
@@ -20,7 +20,7 @@
                 <div class="layui-form-item">
                     <i class="layui-icon layui-icon-username" style="font-size: 14px;color:#889aa4;margin-left:15px;"></i>
                     <input type="text" name="username" lay-verify="required" placeholder="请输入账号" autocomplete="off"
-                        value="{{.username}}" class="layui-input login-input">
+                        value="[[.username]]" class="layui-input login-input">
                 </div>
                 <div class="layui-form-item">
                     <i class="layui-icon layui-icon-password" style="font-size: 14px;color:#889aa4; margin-left:15px;"></i>
@@ -36,7 +36,7 @@
         layui.use(['layer', 'form'], function () {
             const layer = layui.layer; //弹层
             const form = layui.form;
-            const error_info = "{{.flash.error}}";
+            const error_info = "[[.flash.error]]";
             console.log(error_info)
             if (error_info) {
                 layer.msg(error_info, {

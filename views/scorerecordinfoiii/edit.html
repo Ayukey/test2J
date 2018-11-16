@@ -7,30 +7,30 @@
     <form class="layui-form" action="" method="post">
         <div class="layui-form-item">
             <label class="layui-form-label">评分项</label>
-            <div class="layui-form-mid layui-word-aux">{{.Source.template3_name}}</div>
+            <div class="layui-form-mid layui-word-aux">[[.Source.template3_name]]</div>
         </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label">总分</label>
-            <div class="layui-form-mid layui-word-aux">{{.Source.template3_maxscore}}</div>
+            <div class="layui-form-mid layui-word-aux">[[.Source.template3_maxscore]]</div>
         </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label">得分</label>
             <div class="layui-input-inline">
                 <input type="number" name="record3_score" id="score" lay-verify="required" autocomplete="off"
-                    placeholder="分值" class="layui-input" value="{{.Source.record3_score}}">
+                    placeholder="分值" class="layui-input" value="[[.Source.record3_score]]">
             </div>
         </div>
 
-        <input type="hidden" id="template3MaxScore" name="template3_maxScore" value="{{.Source.template3_maxscore}}">
-        <input type="hidden" id="template3ID" name="template3_id" value="{{.Source.template3_id}}">
-        <input type="hidden" id="record3ID" name="record3_id" value="{{.Source.record3_id}}">
-        <input type="hidden" id="template1ID" name="template1_id" value="{{.Source.template1_id}}">
-        <input type="hidden" id="template2ID" name="template2_id" value="{{.Source.template2_id}}">
-        <input type="hidden" id="projectID" name="project_id" value="{{.Source.project_id}}">
-        <input type="hidden" id="year" name="year" value="{{.Source.year}}">
-        <input type="hidden" id="quarter" name="quarter" value="{{.Source.quarter}}">
+        <input type="hidden" id="template3MaxScore" name="template3_maxScore" value="[[.Source.template3_maxscore]]">
+        <input type="hidden" id="template3ID" name="template3_id" value="[[.Source.template3_id]]">
+        <input type="hidden" id="record3ID" name="record3_id" value="[[.Source.record3_id]]">
+        <input type="hidden" id="template1ID" name="template1_id" value="[[.Source.template1_id]]">
+        <input type="hidden" id="template2ID" name="template2_id" value="[[.Source.template2_id]]">
+        <input type="hidden" id="projectID" name="project_id" value="[[.Source.project_id]]">
+        <input type="hidden" id="year" name="year" value="[[.Source.year]]">
+        <input type="hidden" id="quarter" name="quarter" value="[[.Source.quarter]]">
 
         <div class="layui-form-item">
             <div class="layui-input-block">
@@ -56,7 +56,7 @@
                 layer.msg("得分不能大于总分")
             } else {
                 if (score > 0 || score == -1) {
-                    $.post('{{urlfor "ScoreRecordInfoIIIController.AjaxSave"}}', form_data, function (
+                    $.post('[[urlfor "ScoreRecordInfoIIIController.AjaxSave"]]', form_data, function (
                         resp) {
                         if (resp.code == 0) {
                             layer.msg("操作成功", {

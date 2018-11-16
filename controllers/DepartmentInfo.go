@@ -72,7 +72,6 @@ func (c *DepartmentInfoController) AjaxSave() {
 		department.Name = name
 		department.Leader = leader
 		department.Status = 1
-		department.LeaderActive = 1
 
 		if err := models.AddDepartment(department); err != nil {
 			c.ajaxMsg(MSG_ERR, err.Error())

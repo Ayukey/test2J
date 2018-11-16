@@ -14,9 +14,9 @@
             <div class="layui-input-inline">
                 <select name="leader" lay-verify="required" lay-search="" style="width: 100%">
                     <option value="">请选择负责人</option>
-                    {{range $index,$elem := .leaders}}
-                    <option value="{{$elem.ID}}">{{$elem.Name}} ({{$elem.Account}})</option>
-                    {{end}}
+                    [[range $index,$elem := .leaders]]
+                    <option value="[[$elem.ID]]">[[$elem.Name]] ([[$elem.Account]])</option>
+                    [[end]]
                 </select>
             </div>
         </div>
@@ -36,7 +36,7 @@
         let $ = layui.jquery;
 
         form.on('submit(sub)', function (data) {
-            $.post('{{urlfor "DepartmentInfoController.AjaxSave"}}', data.field, function (resp) {
+            $.post('[[urlfor "DepartmentInfoController.AjaxSave"]]', data.field, function (resp) {
                 if (resp.code == 0) {
                     layer.msg("操作成功", {
                         icon: 1,

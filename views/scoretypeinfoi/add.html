@@ -21,7 +21,7 @@
         let $ = layui.jquery;
 
         form.on('submit(sub)', function (data) {
-            $.post('{{urlfor "ScoreTypeInfoIController.AjaxSave"}}', data.field, function (resp) {
+            $.post('[[urlfor "ScoreTypeInfoIController.AjaxSave"]]', data.field, function (resp) {
                 if (resp.code == 0) {
                     layer.msg("操作成功", {
                         icon: 1,

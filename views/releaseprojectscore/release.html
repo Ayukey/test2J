@@ -5,9 +5,9 @@
             <div class="layui-input-inline">
                 <select name="project_id" lay-search="" style="width: 100%">
                     <option value="">请选择项目</option>
-                    {{range $index,$elem := .projectList}}
-                    <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
-                    {{end}}
+                    [[range $index,$elem := .projects]]
+                    <option value="[[$elem.ID]]"> [[$elem.Name]]</option>
+                    [[end]]
                 </select>
             </div>
         </div>
@@ -16,7 +16,8 @@
             <div class="layui-inline">
                 <label class="layui-form-label">年份</label>
                 <div class="layui-input-inline">
-                    <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off" placeholder="请选择年份">
+                    <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off"
+                        placeholder="请选择年份">
                 </div>
             </div>
         </div>
@@ -45,9 +46,9 @@
 </div>
 <script>
     layui.use(['form', 'element', 'layer', 'jquery', 'laydate'], function () {
-        var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
-        var $ = layui.jquery;
-        var laydate = layui.laydate;
+        let form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+        let $ = layui.jquery;
+        let laydate = layui.laydate;
 
         //自定义格式
         laydate.render({
@@ -57,18 +58,18 @@
         });
 
         form.on('submit(sub)', function (data) {
-            var form_data = data.field;
-            console.log(form_data)
-            $.post('{{urlfor "ReleaseProjectScoreController.AjaxSave"}}', form_data, function (out) {
-                console.log(out)
-                if (out.status == 0) {
+            console.log(data.field)
+            $.post('[[urlfor "ReleaseProjectScoreController.AjaxSave"]]', data.field, function (resp) {
+                console.log(resp)
+                if (resp.code == 0) {
                     layer.msg("操作成功", {
-                        icon: 1
+                        icon: 1,
+                        time: 500
                     }, function () {
                         window.location.href = "/ReleaseProjectScore/Release"
                     })
                 } else {
-                    layer.msg(out.message)
+                    layer.msg(resp.msg)
                 }
             }, "json");
             return false;

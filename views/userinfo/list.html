@@ -13,9 +13,9 @@
                         <select name="postion" id="postion" lay-verify="required" lay-search="" autocomplete="off"
                             style="width: 40%">
                             <option value="">请选择职位</option>
-                            {{range $index,$elem := .postions}}
-                            <option value="{{$elem.ID}}">{{$elem.Name}}</option>
-                            {{end}}
+                            [[range $index,$elem := .postions]]
+                            <option value="[[$elem.ID]]">[[$elem.Name]]</option>
+                            [[end]]
                         </select>
                     </div>
                     <button class="layui-btn" data-type="reload" id="reload" lay-submit="" lay-filter="Search">查询</button>
@@ -91,7 +91,7 @@
                     title: "提示",
                     btn: ['确定', '取消']
                 }, function (index, layero) {
-                    $.post('{{urlfor "UserInfoController.DeleteUser"}}', data, function (
+                    $.post('[[urlfor "UserInfoController.DeleteUser"]]', data, function (
                         resp) {
                         console.log(resp)
                         if (resp.code == 0) {

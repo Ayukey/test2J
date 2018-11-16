@@ -23,9 +23,15 @@ func (c *ReleaseProjectScoreController) AjaxSave() {
 	year, _ := c.GetInt("year")
 	quarter, _ := c.GetInt("quarter")
 
+	exist := models.ExistActiveQuarterProject(year, quarter, pid)
+
+	if !exist {
+		c.ajaxMsg(MSG_ERR, "该项目并不在该季度可发布列表中")
+	}
+
 	filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
 	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
-	filter3 := models.DBFilter{Key: "project_id", Value: pid}  // 项目ID
+	filter3 := models.DBFilter{Key: "pid", Value: pid}         // 项目ID
 	filters := []models.DBFilter{filter1, filter2, filter3}
 
 	records := models.SearchProjectReleaseRecordsByFilters(filters...)

@@ -4,23 +4,23 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>{{.siteName}}</title>
+    <title>[[.siteName]]</title>
 
     <link rel="stylesheet" href="/static/layui/css/layui.css">
-    <link rel="stylesheet" href="/static/css/app.css?t=154">
+    <link rel="stylesheet" href="/static/css/app.css">
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.min.css" media="all">
 </head>
 
 <body>
     <div class="layui-layout layui-layout-admin kit-layout-admin">
         <div class="layui-header">
-            <div class="layui-logo">{{.siteName}}</div>
+            <div class="layui-logo">[[.siteName]]</div>
             <div class="layui-logo kit-logo-mobile">P</div>
             <ul class="layui-nav layui-layout-right kit-nav">
                 <li class="layui-nav-item">
                     <a href="javascript:;">
                         <img src="/static/img/logo.png" class="layui-nav-img" style="background:white">
-                        {{.loginUserName}}
+                        [[.loginUserName]]
                     </a>
                 </li>
                 <li class="layui-nav-item">
@@ -37,25 +37,25 @@
                 </div>
                 <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
                 <ul class="layui-nav layui-nav-tree" lay-filter="kitNavbar" kit-navbar>
-                    {{range $index, $elem := .SideMenu1}} {{if $elem}}
+                    [[range $index, $elem := .SideMenu1]] [[if $elem]]
                     <li class="layui-nav-item ">
                         <a class="" href="javascript:;">
-                            <i class="fa {{$elem.Icon}}"></i> &nbsp;&nbsp;
-                            <span>{{$elem.AuthName}}</span>
+                            <i class="fa [[$elem.Icon]]"></i> &nbsp;&nbsp;
+                            <span>[[$elem.AuthName]]</span>
                         </a>
                         <dl class="layui-nav-child">
-                            {{range $i, $e := $.SideMenu2}} {{if eq $e.Pid $elem.Id}}
+                            [[range $i, $e := $.SideMenu2]] [[if eq $e.Pid $elem.Id]]
                             <dd>
-                                <a data-url="{{$e.AuthUrl}}" data-icon="&#xe715;" data-title="{{$e.AuthName}}"
-                                    kit-target data-id="{{$e.Id}}">
-                                    <i class="fa {{$e.Icon}}"></i> &nbsp;&nbsp;
-                                    <span>{{$e.AuthName}}</span>
+                                <a data-url="[[$e.AuthUrl]]" data-icon="&#xe715;" data-title="[[$e.AuthName]]"
+                                    kit-target data-id="[[$e.Id]]">
+                                    <i class="fa [[$e.Icon]]"></i> &nbsp;&nbsp;
+                                    <span>[[$e.AuthName]]</span>
                                 </a>
                             </dd>
-                            {{end}} {{end}}
+                            [[end]] [[end]]
                         </dl>
                     </li>
-                    {{end}} {{end}}
+                    [[end]] [[end]]
                 </ul>
             </div>
         </div>

@@ -1,0 +1,82 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+
+  <input type="hidden" id="year" name="year" value="[[.Source.year]]">
+  <input type="hidden" id="quarter" name="quarter" value="[[.Source.quarter]]">
+
+
+  <table class="layui-hide" id="table_list" style="margin-top: 20px;" lay-filter="table_filter">
+  </table>
+
+  <script type="text/html" id="switchTpl">
+    <!-- 这里的 checked 的状态只是演示 -->
+
+
+    {{#  if(d.isActive){ }}
+    <input type="checkbox" name="sex" value="{{d.id}}" lay-skin="switch" lay-text="开启|关闭" lay-switch lay-filter="turnActive" checked>
+    {{#  }else{ }} 
+    <input type="checkbox" name="sex" value="{{d.id}}" lay-skin="switch" lay-text="开启|关闭" lay-switch lay-filter="turnActive">
+    {{#  } }} 
+
+  </script>
+
+</div>
+<script>
+  layui.use(['table', 'form', 'element', 'jquery'], function () {
+    let table = layui.table;
+    let form = layui.form;
+    let element = layui.element;
+    let $ = layui.jquery;
+
+    // 加载初始数据
+    table.render({
+      elem: '#table_list',
+      url: `/Home/ListActiveProjects?year=${$('#year').val()}&quarter=${$('#quarter').val()}`,
+      cols: [
+        [{
+          field: 'name',
+          align: 'center',
+          title: '项目名称',
+          width: '30%'
+        }, {
+          field: 'leaderName',
+          align: 'center',
+          title: '负责人',
+          width: '30%'
+        }, {
+          fixed: 'right',
+          align: 'center',
+          title: '操作',
+          templet: '#switchTpl',
+          width: '40%'
+        }]
+      ],
+      id: 'listReload',
+      height: "full-130"
+    });
+
+    form.on('switch(turnActive)', function (data) {
+      let formData = {}
+      formData.pid = data.value
+      formData.year = $('#year').val()
+      formData.quarter = $('#quarter').val()
+      formData.inActive = data.elem.checked ? 1 : 0
+
+      console.log(formData)
+      $.post('/Home/HandleActiveProjects', formData, function (resp) {
+        console.log(resp)
+        if (resp.code == 0) {
+          layer.msg("操作成功", {
+            icon: 1,
+            time: 500
+          }, function () {
+            window.location.reload()
+          })
+        } else {
+          layer.msg(resp.msg)
+        }
+      }, "json");
+      return false;
+    });
+
+  });
+</script>

@@ -7,28 +7,30 @@
     <form class="layui-form" action="" method="post">
         <div class="layui-form-item">
             <label class="layui-form-label">评分项</label>
-            <div class="layui-form-mid layui-word-aux">{{.Source.name}}</div>
+            <div class="layui-form-mid layui-word-aux">[[.Source.template_name]]</div>
         </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label">总分</label>
-            <div class="layui-form-mid layui-word-aux">{{.Source.maxscore}}</div>
+            <div class="layui-form-mid layui-word-aux">[[.Source.template_maxscore]]</div>
         </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label">得分</label>
             <div class="layui-input-inline">
-                <input type="number" name="score" id="score" lay-verify="required" autocomplete="off" placeholder="分值" class="layui-input"
-                    value="{{.Source.score}}">
+                <input type="number" name="record_score" id="score" lay-verify="required" autocomplete="off"
+                    placeholder="分值" class="layui-input" value="[[.Source.record_score]]">
             </div>
         </div>
-        
-        <input type="hidden" id="tid" name="tid" value="{{.Source.tid}}">
-        <input type="hidden" id="maxscore" name="maxscore" value="{{.Source.maxscore}}">
-        <input type="hidden" id="year" name="year" value="{{.Source.year}}">
-        <input type="hidden" id="quarter" name="quarter" value="{{.Source.quarter}}">
-        <input type="hidden" id="projectorID" name="projectorID" value="{{.Source.projectorID}}">
-        <input type="hidden" id="departmentorID" name="departmentorID" value="{{.Source.departmentorID}}">
+
+        <input type="hidden" id="templateID" name="template_id" value="[[.Source.template_id]]">
+        <input type="hidden" id="templateMaxScore" name="template_maxscore" value="[[.Source.template_maxscore]]">
+        <input type="hidden" id="year" name="year" value="[[.Source.year]]">
+        <input type="hidden" id="quarter" name="quarter" value="[[.Source.quarter]]">
+        <input type="hidden" id="projectID" name="project_id" value="[[.Source.project_id]]">
+        <input type="hidden" id="projectLeaderID" name="projectLeader_id" value="[[.Source.projectLeader_id]]">
+        <input type="hidden" id="departmentID" name="department_id" value="[[.Source.department_id]]">
+        <input type="hidden" id="departmentLeaderID" name="departmentLeader_id" value="[[.Source.departmentLeader_id]]">
         <div class="layui-form-item">
             <div class="layui-input-block">
                 <button class="layui-btn" lay-submit="" lay-filter="sub">保存</button>
@@ -38,35 +40,36 @@
     </form>
 </div>
 <script>
-    var $;
+    let $;
     layui.config({
         base: "js/"
     }).use(['form', 'element', 'layer', 'jquery'], function () {
-        var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
-        var $ = layui.jquery;
+        let form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+        let $ = layui.jquery;
         form.on('submit(sub)', function (data) {
-            var form_data = data.field;
-            score = parseFloat(form_data.score)
-            maxscore = parseFloat(form_data.maxscore)
+            let form_data = data.field;
+            console.log(form_data)
+            score = parseFloat(form_data.record_score)
+            maxscore = parseFloat(form_data.record_maxscore)
             if (score > maxscore) {
                 layer.msg("得分不能大于总分")
             } else {
                 if (score > 0) {
-                    console.log(form_data)
-                    $.post('{{urlfor "ScoreProjectorRecordInfoController.AjaxSave"}}', form_data, function (
-                        out) {
-                        if (out.status == 0) {
-                            layer.msg("操作成功", {
-                                icon: 1,
-                                time: 500
-                            }, function () {
-                                window.parent.layer.closeAll();
-                                window.parent.location.reload();
-                            })
-                        } else {
-                            layer.msg(out.message)
-                        }
-                    }, "json");
+                    $.post('[[urlfor "ScoreProjectorRecordInfoController.AjaxSave"]]', form_data,
+                        function (
+                            resp) {
+                            if (resp.code == 0) {
+                                layer.msg("操作成功", {
+                                    icon: 1,
+                                    time: 500
+                                }, function () {
+                                    window.parent.layer.closeAll();
+                                    window.parent.recordTable.reload()
+                                })
+                            } else {
+                                layer.msg(resp.msg)
+                            }
+                        }, "json");
                 } else {
                     layer.msg("得分格式不正确")
                 }

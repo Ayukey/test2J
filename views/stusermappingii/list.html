@@ -3,16 +3,16 @@
         <div class="layui-form-item" pane="">
             <label class="layui-form-label">用户</label>
             <div class="layui-input-block">
-                {{range $index,$elem := .users}} {{if eq $elem.on 1}}
-                <input type="checkbox" name="{{$elem.id}}" lay-skin="primary" title="{{$elem.name}} ({{$elem.account}})"
+                [[range $index,$elem := .users]] [[if eq $elem.on 1]]
+                <input type="checkbox" name="[[$elem.id]]" lay-skin="primary" title="[[$elem.name]] ([[$elem.account]])"
                     checked>
-                {{else}}
-                <input type="checkbox" name="{{$elem.id}}" lay-skin="primary" title="{{$elem.name}} ({{$elem.account}})">
-                {{end}} {{end}}
+                [[else]]
+                <input type="checkbox" name="[[$elem.id]]" lay-skin="primary" title="[[$elem.name]] ([[$elem.account]])">
+                [[end]] [[end]]
             </div>
         </div>
 
-        <input type="hidden" id="tid" name="tid" value="{{.tid}}">
+        <input type="hidden" id="tid" name="tid" value="[[.tid]]">
 
         <div class="layui-form-item">
             <div class="layui-input-block">
@@ -30,7 +30,7 @@
         let $ = layui.jquery;
 
         form.on('submit(sub)', function (data) {
-            $.post('{{urlfor "STUserMappingIIController.AjaxSave"}}', data.field, function (resp) {
+            $.post('[[urlfor "STUserMappingIIController.AjaxSave"]]', data.field, function (resp) {
                 if (resp.code == 0) {
                     layer.msg("操作成功", {
                         icon: 1,

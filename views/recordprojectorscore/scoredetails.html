@@ -3,9 +3,9 @@
     <table class="layui-hide" id="table_list" lay-filter="table_filter">
     </table>
 
-    <input type="hidden" id="uid" name="uid" value="{{.Source.uid}}">
-    <input type="hidden" id="year" name="year" value="{{.Source.year}}">
-    <input type="hidden" id="quarter" name="quarter" value="{{.Source.quarter}}">
+    <input type="hidden" id="uid" name="uid" value="[[.Source.uid]]">
+    <input type="hidden" id="year" name="year" value="[[.Source.year]]">
+    <input type="hidden" id="quarter" name="quarter" value="[[.Source.quarter]]">
 </div>
 <script>
     layui.use(['table', 'form', 'element', 'laydate', 'jquery'], function () {

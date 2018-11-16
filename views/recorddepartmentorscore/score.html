@@ -5,7 +5,8 @@
             <form class="layui-form" action="" onsubmit="javascript:return false;">
                 <div class="demoTable">
                     <div class="layui-inline" style="width: 20%; text-align: center;">
-                        <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off" placeholder="请选择年份">
+                        <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off"
+                            placeholder="请选择年份">
                     </div>
 
                     <div class="layui-input-inline" style="width: 20%;text-align: center;">
@@ -21,9 +22,9 @@
                     <div class="layui-input-inline" style="width: 20%;text-align: center;">
                         <select id="uid" name="uid" lay-verify="required" lay-search="" style="width: 100%">
                             <option value="">请选择负责人</option>
-                            {{range $index,$elem := .leaders}}
-                            <option value="{{$elem.ID}}"> {{$elem.Name}} ({{$elem.Account}})</option>
-                            {{end}}
+                            [[range $index,$elem := .leaders]]
+                            <option value="[[$elem.ID]]"> [[$elem.Name]] ([[$elem.Account]])</option>
+                            [[end]]
                         </select>
                     </div>
 
@@ -113,8 +114,9 @@
         table.on('tool(table_filter)', function (obj) {
             var data = obj.data;
             if (obj.event === 'detail') {
-                window.location.href = '/RecordDepartmentorScore/ScoreDetails?year=' + $("#year").val() + '&quarter=' +
-                            $("#quarter").val() + '&uid=' + $("#uid").val();
+                window.location.href = '/RecordDepartmentorScore/ScoreDetails?year=' + $("#year").val() +
+                    '&quarter=' +
+                    $("#quarter").val() + '&uid=' + $("#uid").val();
             }
         });
 

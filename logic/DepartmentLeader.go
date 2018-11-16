@@ -2,6 +2,7 @@ package logic
 
 import (
 	"errors"
+	"fmt"
 	"jg2j_server/models"
 )
 
@@ -144,13 +145,15 @@ func SaveDepartmentLeaderSumScoreRecord(year, quarter, uid, suid, departmentId i
 // 发布部门负责人季度互评
 func ReleaseDepartmentLeaderScoreRecord(year, quarter, uid, departmentId int) error {
 
-	projectLeaders := models.SearchAllProjectLeadersInActive()
+	projectLeaders := models.SearchAllProjectLeadersInActive(year, quarter)
 
 	notScoreProjectLeaders := make([]*models.ProjectLeader, 0)
 
 	totalScore := 0.0
 
 	for _, projectLeader := range projectLeaders {
+		fmt.Println("====================")
+		fmt.Println(projectLeader)
 		user := projectLeader.User
 
 		filter1 := models.DBFilter{Key: "year", Value: year}                  // 年度
@@ -161,6 +164,7 @@ func ReleaseDepartmentLeaderScoreRecord(year, quarter, uid, departmentId int) er
 		filters := []models.DBFilter{filter1, filter2, filter3, filter4, filter5}
 
 		records := models.SearchDepartmentLeaderSumScoreRecordsByFilters(filters...)
+		fmt.Println(records)
 		if len(records) == 0 {
 			notScoreProjectLeaders = append(notScoreProjectLeaders, projectLeader)
 		} else {

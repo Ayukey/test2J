@@ -145,7 +145,7 @@ func SaveProjectLeaderSumScoreRecord(year, quarter, uid, suid, projectId int) er
 // 发布项目负责人季度互评
 func ReleaseProjectLeaderScoreRecord(year, quarter, uid, projectId int) error {
 
-	departmentLeaders := models.SearchAllDepartmentLeadersInActive()
+	departmentLeaders := models.SearchAllDepartmentLeadersInActive(year, quarter)
 
 	notScoreDepartmentLeaders := make([]*models.DepartmentLeader, 0)
 

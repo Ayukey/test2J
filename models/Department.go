@@ -6,11 +6,10 @@ import (
 
 // 部门信息
 type Department struct {
-	ID           int    `orm:"column(id)"`
-	Name         string `orm:"column(name);index;unique"`
-	Leader       int    `orm:"column(leader);null"`
-	LeaderActive int    `orm:"column(leader_active);default(1)"`
-	Status       int    `orm:"column(status);default(1)"`
+	ID     int    `orm:"column(id)"`
+	Name   string `orm:"column(name);index;unique"`
+	Leader int    `orm:"column(leader);null"`
+	Status int    `orm:"column(status);default(1)"`
 }
 
 // 所有部门
@@ -47,11 +46,11 @@ type DepartmentLeader struct {
 }
 
 //  所有参与考核的部门负责人
-func SearchAllDepartmentLeadersInActive() []*DepartmentLeader {
+func SearchAllDepartmentLeadersInDepartment() []*DepartmentLeader {
 	leaders := make([]*DepartmentLeader, 0)
 
 	departments := make([]*Department, 0)
-	orm.NewOrm().QueryTable(TableName("department")).Filter("status", 1).Filter("leader_active", 1).OrderBy("id").All(&departments)
+	orm.NewOrm().QueryTable(TableName("department")).Filter("status", 1).OrderBy("id").All(&departments)
 
 	for _, department := range departments {
 		leader := new(DepartmentLeader)
@@ -63,5 +62,25 @@ func SearchAllDepartmentLeadersInActive() []*DepartmentLeader {
 		}
 	}
 
+	return leaders
+}
+
+//  根据季度获取该季度下有效的部门负责人
+func SearchAllDepartmentLeadersInActive(year, quarter int) []*DepartmentLeader {
+	leaders := make([]*DepartmentLeader, 0)
+
+	activeLeaders := SearchAllActiveQuarterDepartmentLeaders(year, quarter)
+
+	for _, activeLeader := range activeLeaders {
+		leader := new(DepartmentLeader)
+		department, _ := SearchDepartmentByID(activeLeader.DepartmentID)
+		user, _ := SearchUserByID(activeLeader.UID)
+
+		if &department != nil && &user != nil {
+			leader.Department = &department
+			leader.User = &user
+			leaders = append(leaders, leader)
+		}
+	}
 	return leaders
 }

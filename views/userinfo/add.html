@@ -37,9 +37,9 @@
             <div class="layui-input-inline">
                 <select name="position_id" lay-verify="required" lay-search="" style="width: 100%">
                     <option value="">请选择职位</option>
-                    {{range $index,$elem := .positions}}
-                    <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
-                    {{end}}
+                    [[range $index,$elem := .positions]]
+                    <option value="[[$elem.ID]]"> [[$elem.Name]]</option>
+                    [[end]]
                 </select>
             </div>
         </div>
@@ -59,7 +59,7 @@
         let $ = layui.jquery;
 
         form.on('submit(save)', function (data) {
-            $.post('{{urlfor "UserInfoController.AjaxSave"}}', data.field, function (out) {
+            $.post('[[urlfor "UserInfoController.AjaxSave"]]', data.field, function (out) {
                 console.log(out)
                 if (out.code == 0) {
                     layer.msg("操作成功", {

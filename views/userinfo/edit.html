@@ -4,7 +4,7 @@
             <label class="layui-form-label">工号</label>
             <div class="layui-input-block " style="width: 400px">
                 <input type="text" name="account" id="account" lay-verify="required" autocomplete="off" placeholder="工号"
-                    class="layui-input" value="{{.user.account}}">
+                    class="layui-input" value="[[.user.account]]">
             </div>
         </div>
 
@@ -12,7 +12,7 @@
             <label class="layui-form-label">姓名</label>
             <div class="layui-input-block " style="width: 400px">
                 <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" placeholder="姓名"
-                    class="layui-input" value="{{.user.name}}">
+                    class="layui-input" value="[[.user.name]]">
             </div>
         </div>
 
@@ -21,16 +21,16 @@
             <div class="layui-input-inline">
                 <select name="position_id" lay-verify="required" lay-search="" style="width: 100%">
                     <option value="">请选择职位</option>
-                    {{range $index,$elem := .positions}} {{if eq $elem.ID $.user.position_id}}
-                    <option value="{{$elem.ID}}" selected> {{$elem.Name}}</option>
-                    {{else}}
-                    <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
-                    {{end}} {{end}}
+                    [[range $index,$elem := .positions]] [[if eq $elem.ID $.user.position_id]]
+                    <option value="[[$elem.ID]]" selected> [[$elem.Name]]</option>
+                    [[else]]
+                    <option value="[[$elem.ID]]"> [[$elem.Name]]</option>
+                    [[end]] [[end]]
                 </select>
             </div>
         </div>
 
-        <input type="hidden" id="id" name="id" value="{{.user.id}}">
+        <input type="hidden" id="id" name="id" value="[[.user.id]]">
 
         <div class="layui-form-item">
             <div class="layui-input-block">
@@ -46,7 +46,7 @@
         let $ = layui.jquery;
 
         form.on('submit(sub)', function (data) {
-            $.post('{{urlfor "UserInfoController.AjaxSave"}}', data.field, function (resp) {
+            $.post('[[urlfor "UserInfoController.AjaxSave"]]', data.field, function (resp) {
                 if (resp.code == 0) {
                     layer.msg("操作成功", {
                         icon: 1,

@@ -63,6 +63,11 @@ func init() {
 		new(ProjectLeaderScoreRecord),
 		new(ProjectLeaderSumScoreRecord),
 		new(ProjectLeaderReleaseRecord),
+
+		new(QuarterActive),
+		new(QuarterActiveDepartmentLeader),
+		new(QuarterActiveProject),
+		new(QuarterActiveProjectLeader),
 	)
 
 	if beego.AppConfig.String("runmode") == "dev" {

@@ -2,8 +2,8 @@
     <form class="layui-form" action="" method="post">
         <div class="layui-form-item">
             <label class="layui-form-label">上级</label>
-            <input type="hidden" id="tid" name="tid" value="{{.Source.tid}}">
-            <div class="layui-form-mid layui-word-aux">{{.Source.t_name}}</div>
+            <input type="hidden" id="tid" name="tid" value="[[.Source.tid]]">
+            <div class="layui-form-mid layui-word-aux">[[.Source.t_name]]</div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">名称</label>
@@ -35,7 +35,7 @@
         let $ = layui.jquery;
 
         form.on('submit(sub)', function (data) {
-            $.post('{{urlfor "ScoreTypeInfoIIIController.AjaxSave"}}', data.field, function (resp) {
+            $.post('[[urlfor "ScoreTypeInfoIIIController.AjaxSave"]]', data.field, function (resp) {
                 if (resp.code == 0) {
                     layer.msg("操作成功", {
                         icon: 1,

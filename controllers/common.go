@@ -207,7 +207,7 @@ func getProjectInfo(infoList []*models.Project, id int) (info *models.Project) {
 	return nil
 }
 
-func getCurrentYearAndQuarter() string {
+func getCurrentYearAndQuarter() (int, int) {
 	currentYear := time.Now().Year()
 	currentMonth := time.Now().Month()
 	currentQuarter := 0
@@ -222,5 +222,5 @@ func getCurrentYearAndQuarter() string {
 		currentQuarter = 4
 	}
 
-	return fmt.Sprintf("%d-%d", currentYear, currentQuarter)
+	return currentYear, currentQuarter
 }

@@ -1,3 +1,191 @@
-<div class="layui-row ml20">
-    首页内容
+<link rel="stylesheet" href="/static/css/start.css">
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
+    crossorigin="anonymous">
+
+<div class="search_text" style="margin-top: 40px;">
+    <form class="layui-form" action="" onsubmit="javascript:return false;">
+        <div class="demoTable">
+            <div class="layui-input-inline" style="width: 30%; text-align: center;">
+                [[if .Source.inActive]]
+                <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off"
+                    placeholder="请选择年份" value="[[.Source.year]]" disabled>
+                [[else]]
+                <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off"
+                    placeholder="请选择年份" value="[[.Source.year]]">
+                [[end]]
+            </div>
+
+            <div class="layui-input-inline" style="width: 30%;text-align: center; margin-left: 10px">
+                [[if .Source.inActive]]
+                <select id="quarter" name="quarter" lay-verify="required" lay-search="" style="width: 100%" disabled>
+                    <option value="">请选择季度</option>
+                    [[if eq .Source.quarter 1]]
+                    <option value="1" selected>第一季度</option>
+                    [[else]]
+                    <option value="1">第一季度</option>
+                    [[end]]
+                    [[if eq .Source.quarter 2]]
+                    <option value="2" selected>第二季度</option>
+                    [[else]]
+                    <option value="2">第二季度</option>
+                    [[end]]
+                    [[if eq .Source.quarter 3]]
+                    <option value="3" selected>第三季度</option>
+                    [[else]]
+                    <option value="3">第三季度</option>
+                    [[end]]
+                    [[if eq .Source.quarter 4]]
+                    <option value="4" selected>第四季度</option>
+                    [[else]]
+                    <option value="4">第四季度</option>
+                    [[end]]
+                </select>
+                [[else]]
+                <select id="quarter" name="quarter" lay-verify="required" lay-search="" style="width: 100%">
+                    <option value="">请选择季度</option>
+                    [[if eq .Source.quarter 1]]
+                    <option value="1" selected>第一季度</option>
+                    [[else]]
+                    <option value="1">第一季度</option>
+                    [[end]]
+                    [[if eq .Source.quarter 2]]
+                    <option value="2" selected>第二季度</option>
+                    [[else]]
+                    <option value="2">第二季度</option>
+                    [[end]]
+                    [[if eq .Source.quarter 3]]
+                    <option value="3" selected>第三季度</option>
+                    [[else]]
+                    <option value="3">第三季度</option>
+                    [[end]]
+                    [[if eq .Source.quarter 4]]
+                    <option value="4" selected>第四季度</option>
+                    [[else]]
+                    <option value="4">第四季度</option>
+                    [[end]]
+                </select>
+                [[end]]
+            </div>
+
+
+            <div class="layui-input-inline ml20" style="text-align: center;height:38px;">
+                [[if .Source.inActive]]
+                <input type="checkbox" name="turn_active" lay-skin="switch" lay-text="开启|关闭" checked lay-switch
+                    lay-filter="turnActive">
+                [[else]]
+                <input type="checkbox" name="turn_active" lay-skin="switch" lay-text="开启|关闭" lay-switch lay-filter="turnActive">
+                [[end]]
+            </div>
+        </div>
+    </form>
 </div>
+
+
+<div class="row start-bg">
+
+    <div class="col start-active-quarter ">
+        <div class="main-title">项目</div>
+        <div class="all-count">总数: [[.projects]]</div>
+        <div class="active-count">参与数: [[.activeProjects]]</div>
+
+        <div class="start-action">
+            <form class="layui-form" action="" onsubmit="javascript:return false;">
+                <button class="layui-btn" data-type="reload" id="reload" lay-submit lay-filter="showProjects">查看详情</button>
+            </form>
+
+        </div>
+    </div>
+
+    <div class="col start-active-quarter ">
+        <div class="main-title">项目负责人</div>
+        <div class="all-count">总数: [[.projectLeaders]]</div>
+        <div class="active-count">参与数: [[.activeProjectLeaders]]</div>
+
+        <div class="start-action">
+            <form class="layui-form" action="" onsubmit="javascript:return false;">
+                <button class="layui-btn" data-type="reload" id="reload" lay-submit lay-filter="showProjectLeaders">查看详情</button>
+            </form>
+
+        </div>
+    </div>
+
+    <div class="col start-active-quarter ">
+        <div class="main-title">部门负责人</div>
+        <div class="all-count">总数: [[.departmentLeaders]]</div>
+        <div class="active-count">参与数: [[.activeDepartmentLeaders]]</div>
+
+        <div class="start-action">
+            <form class="layui-form" action="" onsubmit="javascript:return false;">
+                <button class="layui-btn" data-type="reload" id="reload" lay-submit lay-filter="showDepartmentLeaders">查看详情</button>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    layui.use(['table', 'form', 'element', 'laydate'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let element = layui.element;
+        let laydate = layui.laydate;
+        let $ = layui.$
+
+        //自定义格式
+        laydate.render({
+            elem: '#year',
+            type: 'year',
+            format: 'yyyy'
+        });
+
+        form.on('switch(turnActive)', function (data) {
+            let formData = {}
+            formData.year = $('#year').val()
+            formData.quarter = $('#quarter').val()
+            formData.inActive = data.elem.checked ? 1 : 0
+
+            $.post('/home/active', formData, function (resp) {
+                console.log(resp)
+                if (resp.code == 0) {
+                    layer.msg("操作成功", {
+                        icon: 1,
+                        time: 500
+                    }, function () {
+                        window.location.reload()
+                    })
+                } else {
+                    layer.msg(resp.msg)
+                }
+            }, "json");
+            return false;
+        });
+
+        form.on('submit(showProjects)', function (data) {
+            console.log("显示1")
+            console.log(data)
+            window.location.href =
+                `/Home/ActiveProjects?year=${$('#year').val()}&quarter=${$('#quarter').val()}`
+            return false;
+        });
+
+        form.on('submit(showProjectLeaders)', function (data) {
+            console.log("显示2")
+            console.log(data)
+            window.location.href =
+                `/Home/ActiveProjectLeaders?year=${$('#year').val()}&quarter=${$('#quarter').val()}`
+            return false;
+        });
+
+        form.on('submit(showDepartmentLeaders)', function (data) {
+            console.log("显示3")
+            console.log(data)
+            window.location.href =
+                `/Home/ActiveDepartmentLeaders?year=${$('#year').val()}&quarter=${$('#quarter').val()}`
+            return false;
+        });
+
+        form.render();
+
+    });
+</script>

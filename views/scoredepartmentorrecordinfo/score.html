@@ -5,7 +5,8 @@
             <form class="layui-form" action="" onsubmit="javascript:return false;">
                 <div class="demoTable">
                     <div class="layui-input-inline" style="width: 20%; text-align: center;">
-                        <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off" placeholder="请选择年份">
+                        <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off"
+                            placeholder="请选择年份">
                     </div>
 
                     <div class="layui-input-inline" style="width: 20%;text-align: center;">
@@ -19,20 +20,21 @@
                     </div>
 
                     <div class="layui-input-inline" style="width: 20%;text-align: center;">
-                        <select id="projectorID" name="projectorID" lay-verify="required" lay-search="" style="width: 100%">
+                        <select id="projectLeader" name="projectLeader" lay-verify="required" lay-search="" style="width: 100%">
                             <option value="">请选择项目负责人</option>
-                            {{range $index,$elem := .projectors}}
-                            <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
-                            {{end}}
+                            [[range $index,$elem := .projectLeaders]]
+                            <option value="[[$elem.User.ID]]|[[$elem.Project.ID]]">[[$elem.User.Name]]
+                                ([[$elem.Project.Name]])</option>
+                            [[end]]
                         </select>
                     </div>
 
                     <div class="layui-input-inline" style="width: 20%;text-align: center;">
-                        <select id="departmentorID" name="departmentorID" lay-verify="required" lay-search="" style="width: 100%">
+                        <select id="departmentLeader" name="departmentLeader" lay-verify="required" lay-search="" style="width: 100%">
                             <option value="">请选部门负责人</option>
-                            {{range $index,$elem := .departmentors}}
-                            <option value="{{$elem.ID}}"> {{$elem.Name}}</option>
-                            {{end}}
+                            [[range $index,$elem := .departmentLeaders]]
+                            <option value="[[$elem.User.ID]]|[[$elem.Department.ID]]">[[$elem.User.Name]]([[$elem.Department.Name]])</option>
+                            [[end]]
                         </select>
                     </div>
 
@@ -53,11 +55,12 @@
 
 </div>
 <script>
+    var recordTable;
     layui.use(['table', 'form', 'element', 'laydate'], function () {
-        var table = layui.table;
-        var form = layui.form;
-        var element = layui.element;
-        var laydate = layui.laydate;
+        let table = layui.table;
+        let form = layui.form;
+        let element = layui.element;
+        let laydate = layui.laydate;
 
         //自定义格式
         laydate.render({
@@ -66,33 +69,33 @@
             format: 'yyyy'
         });
 
-        var $ = layui.$,
+        let $ = layui.$,
             active = {
                 reload: function () {
                     //方法级渲染
-                    table.render({
+                    recordTable = table.render({
                         elem: '#table_list',
-                        url: '/ScoreDepartmentorRecordInfo/Search?year=' + $("#year").val() + '&quarter=' + $(
-                            "#quarter").val() + '&projectorID=' + $("#projectorID").val() + '&departmentorID=' + $("#departmentorID").val(),
+                        url: `/ScoreDepartmentorRecordInfo/Search?year=${$("#year").val()}&quarter=${$(
+                                "#quarter").val()}&projectLeader=${$("#projectLeader").val()}&departmentLeader=${$("#departmentLeader").val()}`,
                         cols: [
                             [{
-                                field: 'id',
+                                field: 'template_id',
                                 title: 'ID',
                                 align: 'center',
                                 sort: true,
                                 width: '20%'
                             }, {
-                                field: 'name',
+                                field: 'template_name',
                                 align: 'center',
                                 title: '名称',
                                 width: '20%'
                             }, {
-                                field: 'max_score',
+                                field: 'template_maxscore',
                                 align: 'center',
                                 title: '总分',
                                 width: '20%'
                             }, {
-                                field: 'score',
+                                field: 'record_score',
                                 align: 'center',
                                 title: '得分',
                                 width: '20%'
@@ -110,19 +113,17 @@
                 }
             };
 
-       //监听工具条
-       table.on('tool(table_filter)', function (obj) {
+        //监听工具条
+        table.on('tool(table_filter)', function (obj) {
             var data = obj.data;
             if (obj.event === 'edit') {
                 layer.open({
                     type: 2,
                     shade: 0.3,
                     id: 1,
-                    title: "编辑项目评分记录",
-                    content: '/ScoreDepartmentorRecordInfo/Edit?tid=' + data.id +
-                        '&year=' + $("#year").val() + '&quarter=' + $(
-                            "#quarter").val() + '&projectorID=' + $("#projectorID").val() + '&departmentorID=' + $("#departmentorID")
-                        .val(),
+                    title: "编辑部门评分记录",
+                    content: `/ScoreDepartmentorRecordInfo/Edit?year=${$("#year").val()}&quarter=${$(
+                                "#quarter").val()}&projectLeader_id=${data.projectLeader_id}&departmentLeader_id=${data.departmentLeader_id}&template_id=${data.template_id}&department_id=${data.department_id}`,
                     area: ['600px', '300px'],
                 });
             } else {

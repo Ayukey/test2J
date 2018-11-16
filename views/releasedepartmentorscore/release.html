@@ -3,11 +3,11 @@
         <div class="layui-form-item">
             <label class="layui-form-label">部门负责人</label>
             <div class="layui-input-inline">
-                <select name="user_id" lay-verify="required" lay-search="" style="width: 100%">
+                <select name="departmentLeader" lay-verify="required" lay-search="" style="width: 100%">
                     <option value="">请选择负责人</option>
-                    {{range $index,$elem := .leaders}}
-                    <option value="{{$elem.ID}}"> {{$elem.Name}} ({{$elem.Account}})</option>
-                    {{end}}
+                    [[range $index,$elem := .departmentLeaders]]
+                    <option value="[[$elem.User.ID]]|[[$elem.Department.ID]]">[[$elem.User.Name]]([[$elem.Department.Name]])</option>
+                    [[end]]
                 </select>
             </div>
         </div>
@@ -16,7 +16,8 @@
             <div class="layui-inline">
                 <label class="layui-form-label">年份</label>
                 <div class="layui-input-inline">
-                    <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off" placeholder="请选择开始时间">
+                    <input type="text" class="layui-input" lay-verify="required" id="year" name="year" autocomplete="off"
+                        placeholder="请选择开始时间">
                 </div>
             </div>
         </div>
@@ -45,9 +46,9 @@
 </div>
 <script>
     layui.use(['form', 'element', 'layer', 'jquery', 'laydate'], function () {
-        var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
-        var $ = layui.jquery;
-        var laydate = layui.laydate;
+        let form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+        let $ = layui.jquery;
+        let laydate = layui.laydate;
 
         //自定义格式
         laydate.render({
@@ -57,17 +58,19 @@
         });
 
         form.on('submit(sub)', function (data) {
-            var form_data = data.field;
-            $.post('{{urlfor "ReleaseDepartmentorScoreController.AjaxSave"}}', form_data, function (out) {
-                console.log(out)
-                if (out.status == 0) {
+            let form_data = data.field;
+            $.post('[[urlfor "ReleaseDepartmentorScoreController.AjaxSave"]]', form_data, function (
+                resp) {
+                console.log(resp)
+                if (resp.code == 0) {
                     layer.msg("操作成功", {
-                        icon: 1
+                        icon: 1,
+                        time: 500
                     }, function () {
                         window.location.href = "/ReleaseDepartmentorScore/Release"
                     })
                 } else {
-                    layer.msg(out.message)
+                    layer.msg(resp.msg)
                 }
             }, "json");
             return false;

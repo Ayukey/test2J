@@ -6,12 +6,10 @@ import (
 
 // 项目信息
 type Project struct {
-	ID           int    `orm:"column(id)"`
-	Name         string `orm:"column(name);index;unique"`
-	Active       int    `orm:"column(active);default(1)"`
-	Leader       int    `orm:"column(leader);null"`
-	LeaderActive int    `orm:"column(leader_active);default(1)"`
-	Status       int    `orm:"column(status);default(1)"`
+	ID     int    `orm:"column(id)"`
+	Name   string `orm:"column(name);index;unique"`
+	Leader int    `orm:"column(leader);null"`
+	Status int    `orm:"column(status);default(1)"`
 }
 
 // 所有项目信息
@@ -42,25 +40,17 @@ func (p *Project) Update(fields ...string) error {
 	return err
 }
 
-//  所有参与考核的项目
-func SearchAllProjectsInActive() []*Project {
-	projects := make([]*Project, 0)
-	query := orm.NewOrm().QueryTable(TableName("project")).Filter("status", 1).Filter("active", 1)
-	query.OrderBy("id").All(&projects)
-	return projects
-}
-
 type ProjectLeader struct {
 	Project *Project
 	User    *User
 }
 
 //  所有参与考核的项目负责人
-func SearchAllProjectLeadersInActive() []*ProjectLeader {
+func SearchAllProjectLeadersInProject() []*ProjectLeader {
 	leaders := make([]*ProjectLeader, 0)
 
 	projects := make([]*Project, 0)
-	orm.NewOrm().QueryTable(TableName("project")).Filter("status", 1).Filter("leader_active", 1).OrderBy("id").All(&projects)
+	orm.NewOrm().QueryTable(TableName("project")).Filter("status", 1).OrderBy("id").All(&projects)
 
 	for _, project := range projects {
 		leader := new(ProjectLeader)
@@ -73,4 +63,39 @@ func SearchAllProjectLeadersInActive() []*ProjectLeader {
 	}
 
 	return leaders
+}
+
+//  根据季度获取该季度下有效的项目负责人
+func SearchAllProjectLeadersInActive(year, quarter int) []*ProjectLeader {
+	leaders := make([]*ProjectLeader, 0)
+
+	activeLeaders := SearchAllActiveQuarterProjectLeaders(year, quarter)
+
+	for _, activeLeader := range activeLeaders {
+		leader := new(ProjectLeader)
+		project, _ := SearchProjectByID(activeLeader.ProjectID)
+		user, _ := SearchUserByID(activeLeader.UID)
+
+		if &project != nil && &user != nil {
+			leader.Project = &project
+			leader.User = &user
+			leaders = append(leaders, leader)
+		}
+	}
+	return leaders
+}
+
+//  根据季度获取该季度下有效的项目
+func SearchAllProjectsInActive(year, quarter int) []*Project {
+	projects := make([]*Project, 0)
+
+	activeProjects := SearchAllActiveQuarterProjects(year, quarter)
+
+	for _, activeProject := range activeProjects {
+		project, _ := SearchProjectByID(activeProject.PID)
+		if &project != nil {
+			projects = append(projects, &project)
+		}
+	}
+	return projects
 }

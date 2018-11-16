@@ -12,7 +12,14 @@ func init() {
 
 	beego.Router("/", &controllers.HomeController{}, "*:Index")
 	beego.Router("/home", &controllers.HomeController{}, "*:Index")
-	beego.Router("/home/start", &controllers.HomeController{}, "*:Start")
+	// beego.Router("/home/start", &controllers.HomeController{}, "*:Start")
+	// beego.Router("/home/active", &controllers.HomeController{}, "*:Active")
+	// beego.Router("/home/activeDepartmentLeaders", &controllers.HomeController{}, "*:ActiveDepartmentLeaders")
+	// beego.Router("/home/listActiveDepartmentLeaders", &controllers.HomeController{}, "*:ListActiveDepartmentLeaders")
+	// beego.Router("/home/activeProjectLeaders", &controllers.HomeController{}, "*:ActiveProjectLeaders")
+	// beego.Router("/home/listActiveProjectLeaders", &controllers.HomeController{}, "*:ListActiveProjectLeaders")
+	// beego.Router("/home/activeProjects", &controllers.HomeController{}, "*:ActiveProjects")
+	beego.AutoRouter(&controllers.HomeController{})
 
 	beego.AutoRouter(&controllers.UserInfoController{})
 	beego.AutoRouter(&controllers.DepartmentInfoController{})
