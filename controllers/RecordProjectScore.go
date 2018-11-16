@@ -16,22 +16,19 @@ type RecordProjectScoreController struct {
 
 func (c *RecordProjectScoreController) Score1() {
 	c.Data["pageTitle"] = "项目评分记录"
-	templates := models.SearchAllProjectTemplate1s()
 	projects := models.SearchAllProjects()
 	c.Data["projects"] = projects
-	c.Data["templates"] = templates
 	c.display()
 }
 
 func (c *RecordProjectScoreController) Search1() {
-	tid, _ := c.GetInt("tid", 0)
 	pid, _ := c.GetInt("pid", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
 	filter1 := models.DBFilter{Key: "year", Value: year}       // 年度
 	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
-	filter3 := models.DBFilter{Key: "project_id", Value: pid}  // 项目ID
+	filter3 := models.DBFilter{Key: "pid", Value: pid}         // 项目ID
 	filters := []models.DBFilter{filter1, filter2, filter3}
 
 	records := models.SearchProjectReleaseRecordsByFilters(filters...)
@@ -40,62 +37,60 @@ func (c *RecordProjectScoreController) Search1() {
 	}
 
 	templateRecords := logic.SearchProjectTemplate1Records(year, quarter, pid)
-	list := make([]map[string]interface{}, 1)
+	list := make([]map[string]interface{}, len(templateRecords))
 
-	for _, tr := range templateRecords {
+	for i, tr := range templateRecords {
 		row := make(map[string]interface{})
-		if tr.Template.ID == tid {
-			row["id"] = tr.Template.ID
-			row["name"] = tr.Template.Name
+		row["t1id"] = tr.Template.ID
+		row["template_name"] = tr.Template.Name
 
-			if tr.Record == nil {
-				row["score"] = "暂无评分"
-			} else {
-				row["score"] = tr.Record.TotalScore
-			}
-			list[0] = row
+		if tr.Record == nil {
+			row["record_score"] = "暂无评分"
+		} else {
+			row["record_score"] = tr.Record.TotalScore
 		}
+		list[i] = row
 	}
 
 	c.ajaxList(MSG_OK, "成功", list)
 }
 
 func (c *RecordProjectScoreController) Score2() {
-	tid, _ := c.GetInt("tid", 0)
+	t1id, _ := c.GetInt("t1id", 0)
 	pid, _ := c.GetInt("pid", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	template, _ := models.SearchProjectTemplate1ByID(tid)
+	template1, _ := models.SearchProjectTemplate1ByID(t1id)
 	project, _ := models.SearchProjectByID(pid)
 	row := make(map[string]interface{})
-	row["tid"] = tid
+	row["t1id"] = t1id
 	row["pid"] = pid
 	row["year"] = year
 	row["quarter"] = quarter
 	c.Data["Source"] = row
-	c.Data["pageTitle"] = strconv.Itoa(year) + "第" + strconv.Itoa(quarter) + "季度" + " (" + project.Name + ")" + "--" + template.Name
+	c.Data["pageTitle"] = strconv.Itoa(year) + "年 第" + strconv.Itoa(quarter) + "季度  " + project.Name + " (" + template1.Name + ")"
 	c.display()
 }
 
 func (c *RecordProjectScoreController) Search2() {
-	tid, _ := c.GetInt("tid", 0)
+	t1id, _ := c.GetInt("t1id", 0)
 	pid, _ := c.GetInt("pid", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	templateRecords := logic.SearchProjectTemplate2Records(year, quarter, tid, pid)
-	list := make([]map[string]interface{}, len(templateRecords))
+	template2Records := logic.SearchProjectTemplate2Records(year, quarter, t1id, pid)
+	list := make([]map[string]interface{}, len(template2Records))
 
-	for k, tr := range templateRecords {
+	for k, tr := range template2Records {
 		row := make(map[string]interface{})
-		row["id"] = tr.Template.ID
-		row["name"] = tr.Template.Name
+		row["t2id"] = tr.Template.ID
+		row["tempalte2_name"] = tr.Template.Name
 
 		if tr.Record == nil {
-			row["score"] = "暂无评分"
+			row["record2_score"] = "暂无评分"
 		} else {
-			row["score"] = tr.Record.TotalScore
+			row["record2_score"] = tr.Record.TotalScore
 		}
 
 		list[k] = row
@@ -105,47 +100,47 @@ func (c *RecordProjectScoreController) Search2() {
 }
 
 func (c *RecordProjectScoreController) Score3() {
-	tid, _ := c.GetInt("tid", 0)
-	ttid, _ := c.GetInt("ttid", 0)
+	t1id, _ := c.GetInt("t1id", 0)
+	t2id, _ := c.GetInt("t2id", 0)
 	pid, _ := c.GetInt("pid", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
-	template, _ := models.SearchProjectTemplate2ByID(tid)
+	template1, _ := models.SearchProjectTemplate1ByID(t1id)
+	template2, _ := models.SearchProjectTemplate2ByID(t2id)
 	project, _ := models.SearchProjectByID(pid)
 	row := make(map[string]interface{})
-	row["tid"] = tid
-	row["ttid"] = ttid
+	row["t1id"] = t1id
+	row["t2id"] = t2id
 	row["pid"] = pid
 	row["year"] = year
 	row["quarter"] = quarter
 	c.Data["Source"] = row
 
-	c.Data["pageTitle"] = strconv.Itoa(year) + "第" + strconv.Itoa(quarter) + "季度" + " (" + project.Name + ")" + "--" + template.Name
+	c.Data["pageTitle"] = strconv.Itoa(year) + "年 第" + strconv.Itoa(quarter) + "季度 " + project.Name + " (" + template1.Name + " -- " + template2.Name + ")"
 	c.display()
 }
 
 func (c *RecordProjectScoreController) Search3() {
-	tid, _ := c.GetInt("tid", 0)
-	ttid, _ := c.GetInt("ttid", 0)
+	t1id, _ := c.GetInt("t1id", 0)
+	t2id, _ := c.GetInt("t2id", 0)
 	pid, _ := c.GetInt("pid", 0)
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	templateRecords := logic.SearchProjectTemplate3Records(year, quarter, tid, ttid, pid)
-	list := make([]map[string]interface{}, len(templateRecords))
+	template3Records := logic.SearchProjectTemplate3Records(year, quarter, t2id, t1id, pid)
+	list := make([]map[string]interface{}, len(template3Records))
 
-	for k, tr := range templateRecords {
+	for k, tr := range template3Records {
 		row := make(map[string]interface{})
-		row["id"] = tr.Template.ID
-		row["tid"] = tid
-		row["ttid"] = ttid
-		row["name"] = tr.Template.Name
-		row["max_score"] = tr.Template.MaxScore
+		row["t3id"] = tr.Template.ID
+		row["t1id"] = t1id
+		row["t2id"] = t2id
+		row["template3_name"] = tr.Template.Name
+		row["template3_maxscore"] = tr.Template.MaxScore
 		if tr.Record == nil {
-			row["score"] = "暂无评分"
+			row["record3_score"] = "暂无评分"
 		} else {
-			row["rid"] = tr.Record.ID
-			row["score"] = tr.Record.Score
+			row["record3_score"] = tr.Record.Score
 		}
 		list[k] = row
 	}

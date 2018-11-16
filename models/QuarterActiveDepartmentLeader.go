@@ -12,7 +12,7 @@ type QuarterActiveDepartmentLeader struct {
 
 func AddQuarterActiveDepartmentLeader(year, quarter, uid, departmentId int) error {
 	o := orm.NewOrm()
-	exist := o.QueryTable("quarter_active_department_leader").Filter("year", year).Filter("quarter", quarter).Filter("uid", uid).Filter("department_id", departmentId).Exist()
+	exist := o.QueryTable(TableName("quarter_active_department_leader")).Filter("year", year).Filter("quarter", quarter).Filter("uid", uid).Filter("department_id", departmentId).Exist()
 	if !exist {
 		q := new(QuarterActiveDepartmentLeader)
 		q.Year = year

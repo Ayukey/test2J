@@ -19,15 +19,6 @@
                         </select>
                     </div>
 
-                    <div class="layui-input-inline" style="width: 20%;text-align: center;">
-                        <select id="uid" name="uid" lay-verify="required" lay-search="" style="width: 100%">
-                            <option value="">请选择负责人</option>
-                            [[range $index,$elem := .leaders]]
-                            <option value="[[$elem.ID]]"> [[$elem.Name]] ([[$elem.Account]])</option>
-                            [[end]]
-                        </select>
-                    </div>
-
                     <button class="layui-btn" data-type="reload" id="reload">查询</button>
 
                     <button class="layui-btn" data-type="download" id="download">下载</button>

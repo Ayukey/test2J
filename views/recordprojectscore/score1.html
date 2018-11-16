@@ -19,16 +19,6 @@
                         </select>
                     </div>
 
-                    <div class="layui-inline" style="width: 20%;text-align: center;">
-                        <select id="tid" name="tid" lay-verify="required" lay-search="">
-                            <option value="">请选择分类</option>
-                            [[range $index,$elem := .types]]
-                            <option value="[[$elem.ID]]"> [[$elem.Name]]</option>
-                            [[end]]
-                        </select>
-                    </div>
-
-
                     <div class="layui-input-inline" style="width: 20%;text-align: center;">
                         <select id="project" name="project" lay-verify="required" lay-search="" style="width: 100%">
                             <option value="">请选择项目</option>
@@ -56,10 +46,10 @@
 </div>
 <script>
     layui.use(['table', 'form', 'element', 'laydate'], function () {
-        var table = layui.table;
-        var form = layui.form;
-        var element = layui.element;
-        var laydate = layui.laydate;
+        let table = layui.table;
+        let form = layui.form;
+        let element = layui.element;
+        let laydate = layui.laydate;
 
         //自定义格式
         laydate.render({
@@ -68,30 +58,27 @@
             format: 'yyyy'
         });
 
-        var $ = layui.$,
+        let $ = layui.$,
             active = {
                 reload: function () {
                     //方法级渲染
                     table.render({
                         elem: '#table_list',
-                        url: '/RecordProjectScore/Search1?year=' + $("#year").val() + '&quarter=' +
-                            $(
-                                "#quarter").val() + '&pid=' + $("#project").val() + '&tid=' + $(
-                                "#tid").val(),
+                        url: `/RecordProjectScore/Search1?year=${$("#year").val()}&quarter=${$("#quarter").val()}&pid=${$("#project").val()}`,
                         cols: [
                             [{
-                                field: 'id',
+                                field: 't1id',
                                 title: 'ID',
                                 align: 'center',
                                 sort: true,
                                 width: '20%'
                             }, {
-                                field: 'name',
+                                field: 'template_name',
                                 align: 'center',
                                 title: '名称',
                                 width: '30%'
                             }, {
-                                field: 'score',
+                                field: 'record_score',
                                 align: 'center',
                                 title: '分数',
                                 width: '30%'
@@ -112,15 +99,11 @@
 
         //监听工具条
         table.on('tool(table_filter)', function (obj) {
-            var data = obj.data;
+            let data = obj.data;
+            console.log(data)
             if (obj.event === 'detail') {
-                // window.location.href = '/RecordProjectScore/Score2?tid=' + data.id + '&pid=' + $(
-                // "#project").val() + '&year=' + $("#year").val() + '&quarter=' + $( // "#quarter").val() + '&ttid=' + $("#tid").val()
-                window.location.href = '/RecordProjectScore/Score2?year=' + $("#year").val() +
-                    '&quarter=' +
-                    $(
-                        "#quarter").val() + '&pid=' + $("#project").val() + '&tid=' + $(
-                        "#tid").val()
+                window.location.href =
+                    `/RecordProjectScore/Score2?year=${$("#year").val()}&quarter=${$("#quarter").val()}&pid=${$("#project").val()}&t1id=${data.t1id}`
             } else {
                 layer.msg('操作不存在');
             }
