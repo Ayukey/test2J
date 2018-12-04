@@ -20,6 +20,14 @@ func SearchAllDepartments() []*Department {
 	return departments
 }
 
+// 根据部门负责人搜索部门信息
+func SearchDepartmentsByLeader(leader int) []*Department {
+	departments := make([]*Department, 0)
+	query := orm.NewOrm().QueryTable(TableName("department")).Filter("status", 1).Filter("leader", leader)
+	query.OrderBy("id").All(&departments)
+	return departments
+}
+
 // 新增部门
 func AddDepartment(d *Department) error {
 	o := orm.NewOrm()

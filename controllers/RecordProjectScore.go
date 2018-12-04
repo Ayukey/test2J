@@ -53,7 +53,7 @@ func (c *RecordProjectScoreController) Search1() {
 		if tr.Record == nil {
 			row["record_score"] = "暂无评分"
 		} else {
-			row["record_score"] = tr.Record.TotalScore
+			row["record_score"] = libs.Float64ToStringWithNoZero(tr.Record.TotalScore)
 		}
 		list[i] = row
 	}
@@ -96,7 +96,7 @@ func (c *RecordProjectScoreController) Search2() {
 		if tr.Record == nil {
 			row["record2_score"] = "暂无评分"
 		} else {
-			row["record2_score"] = tr.Record.TotalScore
+			row["record2_score"] = libs.Float64ToStringWithNoZero(tr.Record.TotalScore)
 		}
 
 		list[k] = row
@@ -269,7 +269,7 @@ func (c *RecordProjectScoreController) Download1() {
 
 	zipDir(dirPath, zipPath)
 	// https://scapi.sh2j.com/
-	c.Redirect("http://localhost:8080/"+zipPath, 302)
+	c.Redirect("https://scapi.sh2j.com/"+zipPath, 302)
 }
 
 func (c *RecordProjectScoreController) Download2() {
@@ -368,7 +368,7 @@ func (c *RecordProjectScoreController) Download2() {
 		fmt.Println(err)
 	}
 	// https://scapi.sh2j.com/
-	c.Redirect("http://localhost:8080/"+filePath, 302)
+	c.Redirect("https://scapi.sh2j.com/"+filePath, 302)
 }
 
 func zipDir(dir, zipFile string) {

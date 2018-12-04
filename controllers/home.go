@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"jg2j_server/models"
 	"strconv"
 	"strings"
@@ -19,6 +20,8 @@ func (c *HomeController) Start() {
 	c.Data["pageTitle"] = "当前考核季度"
 
 	quarterActive, err := models.SearchQuarterInActive()
+	fmt.Println("=============")
+	fmt.Println(quarterActive)
 
 	currentYear, currentQuarter := getCurrentYearAndQuarter()
 
@@ -45,6 +48,9 @@ func (c *HomeController) Start() {
 	activeDepartmentLeaders := models.SearchAllActiveQuarterDepartmentLeaders(year, quarter)
 
 	c.Data["Source"] = row
+
+	fmt.Println("=============")
+	fmt.Println(c.Data["Source"])
 	c.Data["projects"] = len(projects)
 	c.Data["activeProjects"] = len(activeProjects)
 	c.Data["projectLeaders"] = len(projectLeaders)

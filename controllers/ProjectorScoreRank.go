@@ -75,7 +75,7 @@ func (c *ProjectorScoreRankController) Table() {
 	filter2 := models.DBFilter{Key: "quarter", Value: quarter} // 季度
 	filters := []models.DBFilter{filter1, filter2}
 
-	records := models.SearchProjectLeaderReleaseRecordsByFilters(filters...)
+	records := models.SearchProjectLeaderReleaseRecordsByOrder(filters...)
 	if len(records) == 0 {
 		c.ajaxMsg(MSG_ERR, "该季度没有任何项目负责人评分发布")
 	}
@@ -193,5 +193,5 @@ func (c *ProjectorScoreRankController) Download() {
 	}
 	// c.Redirect("https://scapi.sh2j.com/"+filePath, 302)
 	// https://scapi.sh2j.com/
-	c.Redirect("http://localhost:8080/"+filePath, 302)
+	c.Redirect("https://scapi.sh2j.com/"+filePath, 302)
 }

@@ -44,6 +44,6 @@ func SearchDepartmentLeaderReleaseRecordsByOrder(filters ...DBFilter) []*Departm
 	for _, filter := range filters {
 		query = query.Filter(filter.Key, filter.Value)
 	}
-	query.OrderBy("score").All(&records)
+	query.OrderBy("-score").All(&records)
 	return records
 }

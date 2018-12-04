@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/astaxie/beego/orm"
 )
 
@@ -44,6 +46,8 @@ func SearchProjectLeaderReleaseRecordsByOrder(filters ...DBFilter) []*ProjectLea
 	for _, filter := range filters {
 		query = query.Filter(filter.Key, filter.Value)
 	}
-	query.OrderBy("score").All(&records)
+	query.OrderBy("-score").All(&records)
+	fmt.Println("--------")
+	fmt.Println(records)
 	return records
 }

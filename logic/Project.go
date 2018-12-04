@@ -1,6 +1,9 @@
 package logic
 
-import "jg2j_server/models"
+import (
+	"fmt"
+	"jg2j_server/models"
+)
 
 // 项目一级评分模版及记录
 type ProjectTemplate1Record struct {
@@ -58,7 +61,7 @@ func SearchProjectTemplate2Records(year, quarter, t1id, pid int) []*ProjectTempl
 		filter4 := models.DBFilter{Key: "pid", Value: pid}
 		filter5 := models.DBFilter{Key: "t2id", Value: t.ID}
 		filters := []models.DBFilter{filter1, filter2, filter3, filter4, filter5}
-
+		fmt.Println(filters)
 		records := models.SearchProjectScoreRecord2sByFilters(filters...)
 		if len(records) == 1 {
 			templateRecord.Record = records[0]

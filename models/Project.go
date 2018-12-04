@@ -20,6 +20,14 @@ func SearchAllProjects() []*Project {
 	return projects
 }
 
+// 根据项目负责人搜索项目信息
+func SearchProjectsByLeader(leader int) []*Project {
+	projects := make([]*Project, 0)
+	query := orm.NewOrm().QueryTable(TableName("project")).Filter("status", 1).Filter("leader", leader)
+	query.OrderBy("id").All(&projects)
+	return projects
+}
+
 // 新增项目信息
 func AddProject(p *Project) error {
 	o := orm.NewOrm()

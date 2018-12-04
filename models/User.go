@@ -41,6 +41,13 @@ func SearchUserByID(id int) (User, error) {
 	return user, err
 }
 
+// 根据账号搜索用户数据
+func SearchUserByAccount(account string) (User, error) {
+	var user User
+	err := orm.NewOrm().QueryTable(TableName("user")).Filter("account", account).One(&user)
+	return user, err
+}
+
 // 更新用户数据
 func (u *User) Update(fields ...string) error {
 	_, err := orm.NewOrm().Update(u, fields...)
