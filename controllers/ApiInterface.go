@@ -175,7 +175,7 @@ func (c *ApiInfterfaceController) GetProjectScoreType1AndScore() {
 			if tr.Record == nil {
 				info["TotalScore"] = 0
 			} else {
-				info["TotalScore"] = tr.Record.TotalScore //libs.Float64ToStringWithNoZero(f.Record.TotalScore)
+				info["TotalScore"] = libs.Float64ToStringWithNoZero(tr.Record.TotalScore) //tr.Record.TotalScore
 			}
 			list[i] = info
 		}
@@ -201,7 +201,7 @@ func (c *ApiInfterfaceController) GetProjectScoreType2() {
 				info["TotalScore"] = 0
 				info["Remark"] = ""
 			} else {
-				info["TotalScore"] = tr.Record.TotalScore //libs.Float64ToStringWithNoZero(f.Record.TotalScore)
+				info["TotalScore"] = libs.Float64ToStringWithNoZero(tr.Record.TotalScore) //tr.Record.TotalScore
 				info["Remark"] = tr.Record.Remark
 			}
 			list[i] = info
