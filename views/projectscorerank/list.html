@@ -29,6 +29,8 @@
                     </div>
 
                     <button class="layui-btn" data-type="reload" id="reload">查询</button>
+
+                    <button class="layui-btn" data-type="download" id="download">下载</button>
                 </div>
             </form>
         </div>
@@ -81,6 +83,10 @@
                             layer.msg(out.message)
                         }
                     }, "json");
+                },
+                download: function () {
+                    window.location.href =
+                        `/ProjectScoreRank/Download?year=${$("#year").val()}&quarter=${$("#quarter").val()}&t1id=${$("#t1id").val()}`;
                 }
             };
 

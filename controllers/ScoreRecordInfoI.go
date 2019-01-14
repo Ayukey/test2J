@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"jg2j_server/libs"
 	"jg2j_server/logic"
 	"jg2j_server/models"
 )
@@ -35,7 +36,7 @@ func (c *ScoreRecordInfoIController) Search() {
 			row["record1_score"] = "暂无评分"
 		} else {
 			row["record1_id"] = template1Record.Record.ID
-			row["record1_score"] = template1Record.Record.TotalScore
+			row["record1_score"] = libs.Float64ToStringWithNoZero(template1Record.Record.TotalScore)
 		}
 
 		list[index] = row

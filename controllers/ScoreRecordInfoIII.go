@@ -40,7 +40,7 @@ func (c *ScoreRecordInfoIIIController) Search() {
 	year, _ := c.GetInt("year", 0)
 	quarter, _ := c.GetInt("quarter", 0)
 
-	template3Records := logic.SearchProjectTemplate3Records(year, quarter, template2ID, template1ID, projectID)
+	template3Records := logic.SearchProjectTemplate3Records(year, quarter, template1ID, template2ID, projectID)
 	list := make([]map[string]interface{}, len(template3Records))
 
 	for index, template3Record := range template3Records {
